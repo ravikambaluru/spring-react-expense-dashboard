@@ -218,7 +218,7 @@ export default function Page(): React.JSX.Element {
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-				<DataTable columns={transactionColumns} rows={overviewResponse?.transactions || []} />
+				<DataTable rowHeight={80} columns={transactionColumns} rows={overviewResponse?.transactions || []} />
 			</Grid>
 		</Grid>
 	);

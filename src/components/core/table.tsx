@@ -5,9 +5,10 @@ type DataTableProps = {
 	columns: GridColDef[];
 	rows: any[];
 	loading?: boolean;
+	rowHeight: number;
 };
 
-const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false }) => {
+const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, rowHeight }) => {
 	const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
 		page: 0,
 		pageSize: 10,
@@ -24,7 +25,7 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false })
 				onPaginationModelChange={setPaginationModel}
 				disableRowSelectionOnClick
 				showToolbar
-				rowHeight={80}
+				rowHeight={rowHeight}
 			/>
 		</div>
 	);
