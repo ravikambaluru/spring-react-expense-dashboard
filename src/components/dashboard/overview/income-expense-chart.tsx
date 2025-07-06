@@ -57,5 +57,5 @@ export function IncomeExpenseChart({ data }: Props) {
 		{ name: "Expense", data: expenseData },
 	];
 
-	return <Chart options={options} series={series} type="line" height={500} />;
+	return <Chart options={options} series={series} type="line" />;
 }

@@ -21,5 +21,5 @@ export function CategoryBreakDownChart({ data }: Props) {
 		},
 	};
 
-	return <Chart options={options} series={legends} type="donut" height={500} />;
+	return <Chart options={options} series={legends} type="donut" />;
 }

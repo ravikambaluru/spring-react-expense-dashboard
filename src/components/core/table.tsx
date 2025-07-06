@@ -1,9 +1,9 @@
 import React from "react";
-import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridPaginationModel, GridRowsProp, GridToolbar } from "@mui/x-data-grid";
 
 type DataTableProps = {
 	columns: GridColDef[];
-	rows: any[];
+	rows: GridRowsProp;
 	loading?: boolean;
 	rowHeight: number;
 };
@@ -29,14 +29,16 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 				rows={rows}
 				loading={loading}
 				pagination
-				pageSizeOptions={[5, 10, 25, 50]}
+				pageSizeOptions={[5, 10, 25, 50, 100]}
 				paginationModel={paginationModel}
 				onPaginationModelChange={(model) => {
 					setPaginationModel(model);
 				}}
+				showToolbar
+				sortModel={[{ field: "transactionDate", sort: "asc" }]}
 				disableRowSelectionOnClick
 				rowHeight={rowHeight}
-				autoHeight
+				slots={{ toolbar: GridToolbar }}
 			/>
 		</div>
 	);
