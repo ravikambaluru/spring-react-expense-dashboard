@@ -14,147 +14,79 @@ import { Budget } from "@/components/dashboard/overview/budget";
 
 export default function Page(): React.JSX.Element {
 	const [overviewResponse, setOverviewResponse] = React.useState<OverviewResponse>();
-	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs());
-	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs());
+	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
+	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
+	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
+
+	const fetchTransactions = React.useCallback(() => {
+		if (!startDate || !endDate) return;
+		getTransactionForGivenRange({
+			startDate: startDate.format("YYYY-MM-DD"),
+			endDate: endDate.format("YYYY-MM-DD"),
+		})
+			.then(setOverviewResponse)
+			.then(() => setTriggerReload(false))
+			.catch(console.error);
+	}, [startDate, endDate, triggerReload]);
 
 	React.useEffect(() => {
 		getCategories().then(setCategories).catch(console.error);
 	}, []);
 
 	React.useEffect(() => {
-		if (!startDate || !endDate) return;
-		const payload = {
-			startDate: startDate.format("YYYY-MM-DD"),
-			endDate: endDate.format("YYYY-MM-DD"),
-		};
-		getTransactionForGivenRange(payload).then(setOverviewResponse).catch(console.error);
-	}, [startDate, endDate]);
+		fetchTransactions();
+	}, [fetchTransactions, triggerReload]);
 
-	const handleIsIncomeChange = (payload: transactions, isChecked: boolean) => {
+	const handleTransactionUpdate = (payload: transactions, changes: Partial<transactions>) => {
 		const updatedPayload = {
 			...payload,
-			isIncome: isChecked,
-			transactionDate: dayjs(payload.transactionDate).toDate(),
+			...changes,
 		};
-		updateTransaction(updatedPayload)
-			.then(() => {
-				getTransactionForGivenRange({
-					startDate: startDate?.format("YYYY-MM-DD") || "",
-					endDate: endDate?.format("YYYY-MM-DD") || "",
-				}).then(setOverviewResponse);
-			})
-			.catch(console.error);
+		updateTransaction(updatedPayload).then(fetchTransactions).catch(console.error);
+		setTriggerReload(true);
 	};
-	const handleIsSharedExpense = (payload: transactions, isChecked: boolean) => {
-		const updatedPayload = {
-			...payload,
-			isSharedExpense: isChecked,
-			transactionDate: dayjs(payload.transactionDate).toDate(),
+
+	const renderCheckbox = (field: keyof transactions, handler: typeof handleTransactionUpdate) =>
+		function Cell({ row }: any) {
+			return <Checkbox checked={row[field]} onChange={(e) => handler(row, { [field]: e.target.checked })} />;
 		};
-		updateTransaction(updatedPayload)
-			.then(() => {
-				getTransactionForGivenRange({
-					startDate: startDate?.format("YYYY-MM-DD") || "",
-					endDate: endDate?.format("YYYY-MM-DD") || "",
-				}).then(setOverviewResponse);
-			})
-			.catch(console.error);
-	};
-	const handleIgnoreTransaction = (payload: transactions, isChecked: boolean) => {
-		const updatedPayload = {
-			...payload,
-			canIgnoreTransaction: isChecked,
-			transactionDate: dayjs(payload.transactionDate).toDate(),
-		};
-		updateTransaction(updatedPayload)
-			.then(() => {
-				getTransactionForGivenRange({
-					startDate: startDate?.format("YYYY-MM-DD") || "",
-					endDate: endDate?.format("YYYY-MM-DD") || "",
-				}).then(setOverviewResponse);
-			})
-			.catch(console.error);
-	};
-	const handleCategoryChange = (payload: transactions, isChecked: string) => {
-		const updatedPayload = {
-			...payload,
-			category: isChecked,
-			transactionDate: dayjs(payload.transactionDate).toDate(),
-		};
-		updateTransaction(updatedPayload)
-			.then(() => {
-				getTransactionForGivenRange({
-					startDate: startDate?.format("YYYY-MM-DD") || "",
-					endDate: endDate?.format("YYYY-MM-DD") || "",
-				}).then(setOverviewResponse);
-			})
-			.catch(console.error);
-	};
 
 	const transactionColumns: GridColDef[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
-		{
-			field: "transactionDate",
-			headerName: "Date",
-			flex: 0.5,
-			minWidth: 40,
-		},
-		{
-			field: "transactionMessage",
-			headerName: "Message",
-			flex: 1,
-			minWidth: 200,
-		},
+		{ field: "transactionDate", headerName: "Date", flex: 0.5, minWidth: 40 },
+		{ field: "transactionMessage", headerName: "Message", flex: 1, minWidth: 200 },
 		{
 			field: "transactionAmount",
 			headerName: "Amount",
 			flex: 0.25,
 			minWidth: 40,
-			renderCell: (params) => {
-				const isIncome = params.row.isIncome;
-				return (
-					<span style={{ color: isIncome ? "green" : "red", fontWeight: 600, fontSize: 18 }}>
-						₹ {params.row.transactionAmount}
-					</span>
-				);
-			},
+			renderCell: ({ row }) => (
+				<span style={{ color: row.isIncome ? "green" : "red", fontWeight: 600, fontSize: 18 }}>
+					₹ {row.transactionAmount}
+				</span>
+			),
 		},
 		{
 			field: "isIncome",
 			headerName: "Is Income",
 			flex: 0.25,
 			minWidth: 40,
-			renderCell: (params) => (
-				<Checkbox
-					checked={params.row.isIncome}
-					onChange={(event) => handleIsIncomeChange(params.row, event.target.checked)}
-				/>
-			),
+			renderCell: renderCheckbox("isIncome", handleTransactionUpdate),
 		},
 		{
 			field: "isSharedExpense",
 			headerName: "Shared",
 			flex: 0.25,
 			minWidth: 40,
-			renderCell: (params) => (
-				<Checkbox
-					checked={params.row.isSharedExpense}
-					onChange={(event) => handleIsSharedExpense(params.row, event.target.checked)}
-				/>
-			),
+			renderCell: renderCheckbox("isSharedExpense", handleTransactionUpdate),
 		},
 		{
 			field: "canIgnoreTransaction",
-			headerName: "ignore",
+			headerName: "Ignore",
 			flex: 0.25,
 			minWidth: 40,
-			renderCell: (params) => (
-				<Checkbox
-					checked={params.row.isSharedExpense}
-					onChange={(event) => handleIgnoreTransaction(params.row, event.target.checked)}
-				/>
-			),
+			renderCell: renderCheckbox("canIgnoreTransaction", handleTransactionUpdate),
 		},
 		{
 			field: "category",
@@ -162,13 +94,16 @@ export default function Page(): React.JSX.Element {
 			flex: 0.25,
 			minWidth: 200,
 			align: "center",
-			renderCell: (params) => (
-				<FormControl size="medium" style={{ marginTop: "10px" }}>
+			type: "singleSelect",
+			valueOptions: ["Groceries", "Health", "Shopping", "EMI"],
+			renderCell: ({ row }) => (
+				<FormControl size="medium" style={{ marginTop: 10 }}>
 					<InputLabel>Category</InputLabel>
 					<Select
-						value={params.row?.category?.category}
+						value={row?.category?.category || ""}
+						sx={{ width: 125 }}
 						label="Category"
-						onChange={(event) => handleCategoryChange(params.row, event.target.value)}
+						onChange={(e) => handleTransactionUpdate(row, { category: { ...row.category, category: e.target.value } })}
 					>
 						{categories.map((cat) => (
 							<MenuItem key={cat} value={cat}>
@@ -218,7 +153,12 @@ export default function Page(): React.JSX.Element {
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-				<DataTable rowHeight={80} columns={transactionColumns} rows={overviewResponse?.transactions || []} />
+				<DataTable
+					loading={triggerReload}
+					rowHeight={80}
+					columns={transactionColumns}
+					rows={overviewResponse?.transactions || []}
+				/>
 			</Grid>
 		</Grid>
 	);

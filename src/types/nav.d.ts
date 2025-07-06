@@ -13,6 +13,11 @@ export interface NavItemConfig {
 	// can extend it to accept multiple matchers.
 	matcher?: { type: "startsWith" | "equals"; href: string };
 }
+export interface Summary {
+	income: number;
+	expenses: number;
+	remaining: number;
+}
 export interface OverviewResponse {
 	income: number;
 	expenses: number;
@@ -32,4 +37,36 @@ export interface transactions {
 	isIncome: boolean;
 	isSharedExpense: boolean;
 	canIgnoreTransaction: boolean;
+}
+export interface DashboardAnalyticsResponse {
+	summary: Summary;
+	categoryBreakdown: CategoryBreakdown;
+	dailyTrend: DailyTrend;
+	sharedVsPersonal: SharedVsPersonal;
+	monthlySummary: MonthlySummaryItem[];
+}
+
+export interface Summary {
+	income: number;
+	expense: number;
+	remaining: number;
+}
+
+export interface CategoryBreakdown {
+	[category: string]: number; // e.g., "EMI": 12534.84
+}
+
+export interface DailyTrend {
+	[date: string]: number; // e.g., "2025-07-01": -2866.84
+}
+
+export interface SharedVsPersonal {
+	shared: number;
+	personal: number;
+}
+
+export interface MonthlySummaryItem {
+	month: string; // e.g., "JANUARY"
+	income: number;
+	expense: number;
 }

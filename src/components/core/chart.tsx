@@ -1,8 +1,25 @@
-'use client';
+import * as React from "react";
+import { ApexOptions } from "apexcharts";
+import Chart from "react-apexcharts";
 
-import dynamic from 'next/dynamic';
-import { styled } from '@mui/system';
+import { CategoryBreakdown } from "@/types/nav";
 
-const ApexChart = dynamic(() => import('react-apexcharts'), { ssr: false, loading: () => null });
+interface Props {
+	data: CategoryBreakdown;
+}
+export function CategoryBreakDownChart({ data }: Props) {
+	const labels = Object.keys(data);
+	const legends = Object.values(data);
 
-export const Chart = styled(ApexChart)``;
+	const options: ApexOptions = {
+		chart: {
+			type: "donut",
+		},
+		labels,
+		legend: {
+			position: "right",
+		},
+	};
+
+	return <Chart options={options} series={legends} type="donut" height={500} />;
+}

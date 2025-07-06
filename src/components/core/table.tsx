@@ -13,6 +13,15 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 		page: 0,
 		pageSize: 10,
 	});
+
+	// 🔁 Reset page when rows change (especially due to filtering, etc.)
+	React.useEffect(() => {
+		setPaginationModel((prev) => ({
+			...prev,
+			page: 0,
+		}));
+	}, [rows]);
+
 	return (
 		<div style={{ width: "100%" }}>
 			<DataGrid
@@ -22,10 +31,12 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 				pagination
 				pageSizeOptions={[5, 10, 25, 50]}
 				paginationModel={paginationModel}
-				onPaginationModelChange={setPaginationModel}
+				onPaginationModelChange={(model) => {
+					setPaginationModel(model);
+				}}
 				disableRowSelectionOnClick
-				showToolbar
 				rowHeight={rowHeight}
+				autoHeight
 			/>
 		</div>
 	);
