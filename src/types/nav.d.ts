@@ -70,3 +70,16 @@ export interface MonthlySummaryItem {
 	income: number;
 	expense: number;
 }
+export interface CategorySplitSettingRequest {
+	category: string; // e.g., "GROCERIES"
+	user: string;
+	percentage: number;
+}
+
+export interface CategorySplitSettingResponse {
+	id: number;
+	category: string;
+	user: string;
+	percentage: number;
+	createdAt: string;
+}

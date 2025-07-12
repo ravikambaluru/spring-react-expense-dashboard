@@ -39,6 +39,13 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 				disableRowSelectionOnClick
 				rowHeight={rowHeight}
 				slots={{ toolbar: GridToolbar }}
+				filterMode="client"
+				slotProps={{
+					toolbar: {
+						showQuickFilter: true,
+						quickFilterProps: { debounceMs: 500 },
+					},
+				}}
 			/>
 		</div>
 	);

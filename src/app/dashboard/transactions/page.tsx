@@ -17,6 +17,7 @@ export default function Page(): React.JSX.Element {
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
+	const [catFilter, setCatFilter] = React.useState<string>();
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
 
 	const fetchTransactions = React.useCallback(() => {
@@ -24,11 +25,12 @@ export default function Page(): React.JSX.Element {
 		getTransactionForGivenRange({
 			startDate: startDate.format("YYYY-MM-DD"),
 			endDate: endDate.format("YYYY-MM-DD"),
+			category: catFilter,
 		})
 			.then(setOverviewResponse)
 			.then(() => setTriggerReload(false))
 			.catch(console.error);
-	}, [startDate, endDate, triggerReload]);
+	}, [startDate, endDate, catFilter]);
 
 	React.useEffect(() => {
 		getCategories().then(setCategories).catch(console.error);
@@ -95,6 +97,7 @@ export default function Page(): React.JSX.Element {
 			minWidth: 200,
 			align: "center",
 			type: "singleSelect",
+			filterable: true,
 			valueOptions: ["Groceries", "Health", "Shopping", "EMI"],
 			renderCell: ({ row }) => (
 				<FormControl size="medium" style={{ marginTop: 10 }}>
@@ -132,7 +135,7 @@ export default function Page(): React.JSX.Element {
 				</Grid>
 			))}
 
-			<Grid size={{ xs: 12, sm: 12, lg: 5 }}>
+			<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
 				<DatePicker
 					label="Start Date"
 					value={startDate}
@@ -141,15 +144,25 @@ export default function Page(): React.JSX.Element {
 				/>
 			</Grid>
 
-			<Grid size={{ xs: 12, sm: 12, lg: 2 }} />
-
-			<Grid size={{ xs: 12, sm: 12, lg: 5 }}>
+			<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
 				<DatePicker
 					label="End Date"
 					value={endDate}
 					onChange={setEndDate}
 					slotProps={{ textField: { fullWidth: true } }}
 				/>
+			</Grid>
+			<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
+				<FormControl fullWidth>
+					<InputLabel>Category</InputLabel>
+					<Select label="Category" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
+						{categories.map((cat) => (
+							<MenuItem key={cat} value={cat}>
+								{cat}
+							</MenuItem>
+						))}
+					</Select>
+				</FormControl>
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>

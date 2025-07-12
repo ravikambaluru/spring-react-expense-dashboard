@@ -6,7 +6,7 @@ export const paths = {
 		transactions: "/dashboard/transactions",
 		account: "/dashboard/account",
 		categories: "/dashboard/categories",
-		integrations: "/dashboard/integrations",
+		categorySplitSettings: "/dashboard/integrations",
 		settings: "/dashboard/settings",
 	},
 	errors: { notFound: "/errors/not-found" },
