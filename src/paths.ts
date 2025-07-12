@@ -4,7 +4,7 @@ export const paths = {
 	dashboard: {
 		overview: "/dashboard",
 		transactions: "/dashboard/transactions",
-		account: "/dashboard/account",
+		shareCalculator: "/dashboard/account",
 		categories: "/dashboard/categories",
 		categorySplitSettings: "/dashboard/integrations",
 		settings: "/dashboard/settings",
