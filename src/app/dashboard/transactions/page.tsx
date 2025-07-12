@@ -10,7 +10,7 @@ import { OverviewResponse, transactions } from "@/types/nav";
 import { getCategories } from "@/lib/api/category";
 import { getTransactionForGivenRange, updateTransaction } from "@/lib/api/transactions";
 import DataTable from "@/components/core/table";
-import { Budget } from "@/components/dashboard/overview/budget";
+import { Budget } from "@/features/dashboard/overview/budget";
 
 export default function Page(): React.JSX.Element {
 	const [overviewResponse, setOverviewResponse] = React.useState<OverviewResponse>();

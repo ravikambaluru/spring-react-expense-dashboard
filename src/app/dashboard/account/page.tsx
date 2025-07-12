@@ -5,8 +5,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { config } from '@/config';
-import { AccountDetailsForm } from '@/components/dashboard/account/account-details-form';
-import { AccountInfo } from '@/components/dashboard/account/account-info';
+import { AccountDetailsForm } from '@/features/dashboard/account/account-details-form';
+import { AccountInfo } from '@/features/dashboard/account/account-info';
 
 export const metadata = { title: `Account | Dashboard | ${config.site.name}` } satisfies Metadata;
 
