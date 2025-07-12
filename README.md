@@ -60,8 +60,9 @@ Within the download you'll find the following directories and files:
 ├── tsconfig.json
 ├── public
 └── src
-	├── components
-	├── contexts
+        ├── components
+        ├── features
+        ├── contexts
 	├── hooks
 	├── lib
 	├── styles
