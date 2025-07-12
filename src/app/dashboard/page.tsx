@@ -85,10 +85,10 @@ export default function Page(): React.JSX.Element {
 						onChange={setEndDate}
 						sx={{ marginTop: "20px", marginBottom: "20px" }}
 					/>
-					<FormControlLabel
-						control={<Checkbox value={isShared} onChange={(event) => setIsShared(event.target.checked)} />}
-						label="Shared"
-					></FormControlLabel>
+                                        <FormControlLabel
+                                                control={<Checkbox checked={isShared} onChange={(event) => setIsShared(event.target.checked)} />}
+                                                label="Shared"
+                                        ></FormControlLabel>
 				</Card>
 			</Grid>
 
