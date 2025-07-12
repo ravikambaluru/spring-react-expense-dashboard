@@ -21,6 +21,7 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
+import LoadingScreen from '@/components/core/loading-screen';
 
 const schema = zod.object({
   firstName: zod.string().min(1, { message: 'First name is required' }),
@@ -151,6 +152,7 @@ export function SignUpForm(): React.JSX.Element {
         </Stack>
       </form>
       <Alert color="warning">Created users are not persisted</Alert>
+      <LoadingScreen open={isPending} />
     </Stack>
   );
 }

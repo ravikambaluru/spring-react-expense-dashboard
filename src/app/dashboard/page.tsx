@@ -13,32 +13,37 @@ import { Budget } from "@/features/dashboard/overview/budget";
 import { DailyExpenseChart } from "@/features/dashboard/overview/daily-expense-breakdown";
 import { IncomeExpenseChart } from "@/features/dashboard/overview/income-expense-chart";
 import { SharedPersonalChart } from "@/features/dashboard/overview/shared-personal-breakdown";
+import LoadingScreen from "@/components/core/loading-screen";
 
 export default function Page(): React.JSX.Element {
-	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
-	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("month"));
-	const [isShared, setIsShared] = React.useState<boolean>(false);
-	const [data, setData] = React.useState<DashboardAnalyticsResponse | null>(null);
+        const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
+        const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("month"));
+        const [isShared, setIsShared] = React.useState<boolean>(false);
+        const [data, setData] = React.useState<DashboardAnalyticsResponse | null>(null);
+        const [loading, setLoading] = React.useState(false);
 
-	React.useEffect(() => {
-		if (!startDate || !endDate) return;
-		getDashboardAnalytics(
-			startDate.format("YYYY-MM-DD"),
-			endDate.format("YYYY-MM-DD"),
-			new Date(startDate.toString()).getFullYear().toString(),
-			isShared
-		)
-			.then(setData)
-			.catch(console.error);
-	}, [startDate, endDate, isShared]);
+        React.useEffect(() => {
+                if (!startDate || !endDate) return;
+                setLoading(true);
+                getDashboardAnalytics(
+                        startDate.format("YYYY-MM-DD"),
+                        endDate.format("YYYY-MM-DD"),
+                        new Date(startDate.toString()).getFullYear().toString(),
+                        isShared
+                )
+                        .then(setData)
+                        .catch(console.error)
+                        .finally(() => setLoading(false));
+        }, [startDate, endDate, isShared]);
 	// Safely extract values
 	const income = data?.summary?.income ?? 0;
 	const shared = data?.sharedVsPersonal?.shared ?? 0;
 	const personal = data?.sharedVsPersonal?.personal ?? 0;
 	const totalExpense = shared + personal;
 	const savings = income - totalExpense;
-	return (
-		<Grid container spacing={3}>
+        return (
+                <>
+                <Grid container spacing={3}>
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
 				<Typography variant="h4">Overview </Typography>
 			</Grid>
@@ -98,12 +103,17 @@ export default function Page(): React.JSX.Element {
 					<IncomeExpenseChart data={data?.monthlySummary ?? []} />
 				</Card>
 			</Grid>
-			<Grid size={{ xs: 12, sm: 12, lg: 5 }}>
-				<Card style={{ padding: "20px" }}>
-					<Typography variant="h6">Expenses Shared Distribution</Typography>
-					<SharedPersonalChart key={JSON.stringify(data?.categoryBreakdown)} data={data?.sharedVsPersonal ?? {}} />
-				</Card>
-			</Grid>
-		</Grid>
-	);
+                        <Grid size={{ xs: 12, sm: 12, lg: 5 }}>
+                                <Card style={{ padding: "20px" }}>
+                                        <Typography variant="h6">Expenses Shared Distribution</Typography>
+                                        <SharedPersonalChart
+                                                key={JSON.stringify(data?.categoryBreakdown)}
+                                                data={data?.sharedVsPersonal ?? { shared: 0, personal: 0 }}
+                                        />
+                                </Card>
+                        </Grid>
+                </Grid>
+                <LoadingScreen open={loading} />
+                </>
+        );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Button, MenuItem, Select, Typography } from "@mui/material";
+import { Box, Button, MenuItem, Select } from "@mui/material";
 import { Grid } from "@mui/system";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 

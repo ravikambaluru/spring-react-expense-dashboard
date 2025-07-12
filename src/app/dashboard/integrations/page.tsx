@@ -2,42 +2,46 @@
 
 import * as React from "react";
 import { Box, Button, Grid, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { DownloadIcon, PlusIcon, UploadIcon } from "@phosphor-icons/react/dist/ssr";
+import { GridColDef } from "@mui/x-data-grid";
+import { DownloadIcon, UploadIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { Category, CategorySplitSettingResponse } from "@/types/nav";
 import { getAllCategories } from "@/lib/api/category";
 import {
-	addCategorySetting,
-	deleteCategorySetting,
-	getAllCategorySettings,
-	getAllUsers,
+        addCategorySetting,
+        getAllCategorySettings,
+        getAllUsers,
 } from "@/lib/api/category-split";
 import DataTable from "@/components/core/table";
+import LoadingScreen from "@/components/core/loading-screen";
 
 export default function Page(): React.JSX.Element {
-	const [categories, setCategories] = React.useState<Category[]>([]);
-	const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
-	const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
-	const [settings, setSettings] = React.useState<CategorySplitSettingResponse[]>([]);
-	const [users, setUsers] = React.useState<string[]>([]);
-	const [percentage, setPercentage] = React.useState("");
+        const [categories, setCategories] = React.useState<Category[]>([]);
+        const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+        const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
+        const [settings, setSettings] = React.useState<CategorySplitSettingResponse[]>([]);
+        const [users, setUsers] = React.useState<string[]>([]);
+        const [percentage, setPercentage] = React.useState("");
+        const [loading, setLoading] = React.useState(false);
 
-	const fetchSettings = React.useCallback(async () => {
-		try {
-			const [allCategories, allSettings, allUsers] = await Promise.all([
-				getAllCategories(),
-				getAllCategorySettings(),
-				getAllUsers(),
-			]);
+        const fetchSettings = React.useCallback(async () => {
+                try {
+                        setLoading(true);
+                        const [allCategories, allSettings, allUsers] = await Promise.all([
+                                getAllCategories(),
+                                getAllCategorySettings(),
+                                getAllUsers(),
+                        ]);
 
-			setCategories(allCategories ?? []);
-			setSettings(allSettings ?? []);
-			setUsers(Array.isArray(allUsers) ? allUsers : []);
-		} catch (error) {
-			console.error("Error fetching settings:", error);
-		}
-	}, []);
+                        setCategories(allCategories ?? []);
+                        setSettings(allSettings ?? []);
+                        setUsers(Array.isArray(allUsers) ? allUsers : []);
+                } catch (error) {
+                        console.error("Error fetching settings:", error);
+                } finally {
+                        setLoading(false);
+                }
+        }, []);
 
 	React.useEffect(() => {
 		fetchSettings();
@@ -46,20 +50,22 @@ export default function Page(): React.JSX.Element {
 		console.log("Users loaded:", users);
 	}, [users]);
 
-	const handleAdd = async () => {
-		if (!selectedCategory || !selectedUser || !percentage) return;
+        const handleAdd = async () => {
+                if (!selectedCategory || !selectedUser || !percentage) return;
 
-		await addCategorySetting({
-			category: selectedCategory,
-			user: selectedUser,
-			percentage: Number(percentage),
-		});
+                setLoading(true);
+                await addCategorySetting({
+                        category: selectedCategory,
+                        user: selectedUser,
+                        percentage: Number(percentage),
+                });
 
-		setSelectedCategory(null);
-		setSelectedUser(null);
-		setPercentage("");
-		fetchSettings();
-	};
+                setSelectedCategory(null);
+                setSelectedUser(null);
+                setPercentage("");
+                fetchSettings();
+                setLoading(false);
+        };
 
 	const columns: GridColDef[] = [
 		{ field: "id", headerName: "ID", flex: 1 },
@@ -93,7 +99,7 @@ export default function Page(): React.JSX.Element {
 				</Stack>
 			</Stack>
 
-			<Box sx={{ p: 3 }}>
+                        <Box sx={{ p: 3 }}>
 				<Typography variant="h5" mb={2}>
 					Add New Split
 				</Typography>
@@ -151,8 +157,9 @@ export default function Page(): React.JSX.Element {
 					</Grid>
 				</Grid>
 
-				<DataTable columns={columns} rows={settings} rowHeight={60} />
-			</Box>
-		</>
-	);
+                                <DataTable columns={columns} rows={settings} rowHeight={60} />
+                        </Box>
+                        <LoadingScreen open={loading} />
+                </>
+        );
 }

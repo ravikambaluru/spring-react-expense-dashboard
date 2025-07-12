@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Checkbox, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material";
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 
@@ -11,26 +11,30 @@ import { getCategories } from "@/lib/api/category";
 import { getTransactionForGivenRange, updateTransaction } from "@/lib/api/transactions";
 import DataTable from "@/components/core/table";
 import { Budget } from "@/features/dashboard/overview/budget";
+import LoadingScreen from "@/components/core/loading-screen";
 
 export default function Page(): React.JSX.Element {
 	const [overviewResponse, setOverviewResponse] = React.useState<OverviewResponse>();
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
-	const [categories, setCategories] = React.useState<string[]>([]);
-	const [catFilter, setCatFilter] = React.useState<string>();
-	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
+        const [categories, setCategories] = React.useState<string[]>([]);
+        const [catFilter, setCatFilter] = React.useState<string>();
+        const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
+        const [loading, setLoading] = React.useState(false);
 
-	const fetchTransactions = React.useCallback(() => {
-		if (!startDate || !endDate) return;
-		getTransactionForGivenRange({
-			startDate: startDate.format("YYYY-MM-DD"),
-			endDate: endDate.format("YYYY-MM-DD"),
-			category: catFilter,
-		})
-			.then(setOverviewResponse)
-			.then(() => setTriggerReload(false))
-			.catch(console.error);
-	}, [startDate, endDate, catFilter]);
+        const fetchTransactions = React.useCallback(() => {
+                if (!startDate || !endDate) return;
+                setLoading(true);
+                getTransactionForGivenRange({
+                        startDate: startDate.format("YYYY-MM-DD"),
+                        endDate: endDate.format("YYYY-MM-DD"),
+                        category: catFilter,
+                })
+                        .then(setOverviewResponse)
+                        .then(() => setTriggerReload(false))
+                        .catch(console.error)
+                        .finally(() => setLoading(false));
+        }, [startDate, endDate, catFilter]);
 
 	React.useEffect(() => {
 		getCategories().then(setCategories).catch(console.error);
@@ -40,19 +44,24 @@ export default function Page(): React.JSX.Element {
 		fetchTransactions();
 	}, [fetchTransactions, triggerReload]);
 
-	const handleTransactionUpdate = (payload: transactions, changes: Partial<transactions>) => {
-		const updatedPayload = {
-			...payload,
-			...changes,
-		};
-		updateTransaction(updatedPayload).then(fetchTransactions).catch(console.error);
-		setTriggerReload(true);
-	};
+        const handleTransactionUpdate = (payload: transactions, changes: Partial<transactions>) => {
+                const updatedPayload = {
+                        ...payload,
+                        ...changes,
+                };
+                setLoading(true);
+                updateTransaction(updatedPayload)
+                        .then(fetchTransactions)
+                        .catch(console.error)
+                        .finally(() => setLoading(false));
+                setTriggerReload(true);
+        };
 
-	const renderCheckbox = (field: keyof transactions, handler: typeof handleTransactionUpdate) =>
-		function Cell({ row }: any) {
-			return <Checkbox checked={row[field]} onChange={(e) => handler(row, { [field]: e.target.checked })} />;
-		};
+        const renderCheckbox = (field: keyof transactions, handler: typeof handleTransactionUpdate) =>
+                function Cell({ row }: GridRenderCellParams<transactions>) {
+                        const value = row[field as keyof transactions] as boolean;
+                        return <Checkbox checked={value} onChange={(e) => handler(row, { [field]: e.target.checked })} />;
+                };
 
 	const transactionColumns: GridColDef[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
@@ -125,7 +134,7 @@ export default function Page(): React.JSX.Element {
 				<Typography variant="h4">Monthly Transactions</Typography>
 			</Grid>
 
-			{["income", "expenses", "remaining"].map((type, i) => (
+                        {["income", "expenses", "remaining"].map((type) => (
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={type}>
 					<Budget
 						title={type.toUpperCase()}
@@ -166,13 +175,14 @@ export default function Page(): React.JSX.Element {
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-				<DataTable
-					loading={triggerReload}
-					rowHeight={80}
-					columns={transactionColumns}
-					rows={overviewResponse?.transactions || []}
-				/>
-			</Grid>
-		</Grid>
-	);
+                                <DataTable
+                                        loading={triggerReload}
+                                        rowHeight={80}
+                                        columns={transactionColumns}
+                                        rows={overviewResponse?.transactions || []}
+                                />
+                        </Grid>
+                        <LoadingScreen open={loading} />
+                </Grid>
+        );
 }

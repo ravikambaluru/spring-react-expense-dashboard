@@ -21,6 +21,7 @@ import { z as zod } from 'zod';
 import { paths } from '@/paths';
 import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
+import LoadingScreen from '@/components/core/loading-screen';
 
 const schema = zod.object({
   email: zod.string().min(1, { message: 'Email is required' }).email(),
@@ -148,6 +149,7 @@ export function SignInForm(): React.JSX.Element {
           Secret1
         </Typography>
       </Alert>
+      <LoadingScreen open={isPending} />
     </Stack>
   );
 }

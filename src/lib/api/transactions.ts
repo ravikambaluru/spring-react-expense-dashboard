@@ -1,19 +1,23 @@
 import { OverviewResponse, transactions } from "@/types/nav";
-import { SettleUpRequest, TransactionDTO } from "@/types/user";
-
-import { BalanceSummaryDTO, TransactionRequestDTO, TransactionResponseDTO } from "../types/transaction";
+import {
+  BalanceSummaryDTO,
+  SettleUpRequest,
+  TransactionDTO,
+  TransactionRequestDTO,
+  TransactionResponseDTO,
+} from "@/types/user";
 import axiosInstance from "./axios";
 
 export interface TransactionPayload {
-	startDate: string;
-	endDate: string;
-	category: string;
+        startDate: string;
+        endDate: string;
+        category?: string;
 }
 export const getTransactionForGivenRange = async ({
-	startDate,
-	endDate,
-	category = "no-cat-filter",
-}): Promise<OverviewResponse> => {
+        startDate,
+        endDate,
+        category = "no-cat-filter",
+}: TransactionPayload): Promise<OverviewResponse> => {
 	const response = await axiosInstance.get("api/expenses/getExpenses/" + startDate + "/" + endDate + "/" + category);
 	return response.data;
 };
