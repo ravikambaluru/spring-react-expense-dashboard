@@ -29,14 +29,14 @@ export default function Page(): React.JSX.Element {
 	React.useEffect(() => {
 		getAllCategories().then(setCategories).catch(console.error);
 	}, []);
-	const handleSubmit = (input: unknown) => {
-		input.preventDefault();
-		const value = input.target[0].value;
-		createCategory(value)
-			.then(getAllCategories().then(setCategories))
-			.then(() => setOpen(false))
-			.catch(console.error);
-	};
+        const handleSubmit = (input: unknown) => {
+                input.preventDefault();
+                const value = input.target[0].value;
+                createCategory(value)
+                        .then(() => getAllCategories().then(setCategories))
+                        .then(() => setOpen(false))
+                        .catch(console.error);
+        };
 	return (
 		<>
 			<Stack spacing={3}>
