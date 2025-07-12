@@ -9,10 +9,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { DashboardAnalyticsResponse } from "@/types/nav";
 import { getDashboardAnalytics } from "@/lib/api/overview";
 import { CategoryBreakDownChart } from "@/components/core/chart";
-import { Budget } from "@/components/dashboard/overview/budget";
-import { DailyExpenseChart } from "@/components/dashboard/overview/daily-expense-breakdown";
-import { IncomeExpenseChart } from "@/components/dashboard/overview/income-expense-chart";
-import { SharedPersonalChart } from "@/components/dashboard/overview/shared-personal-breakdown";
+import { Budget } from "@/features/dashboard/overview/budget";
+import { DailyExpenseChart } from "@/features/dashboard/overview/daily-expense-breakdown";
+import { IncomeExpenseChart } from "@/features/dashboard/overview/income-expense-chart";
+import { SharedPersonalChart } from "@/features/dashboard/overview/shared-personal-breakdown";
 
 export default function Page(): React.JSX.Element {
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
