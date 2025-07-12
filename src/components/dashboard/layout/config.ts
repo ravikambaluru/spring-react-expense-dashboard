@@ -4,7 +4,7 @@ import { paths } from "@/paths";
 export const navItems = [
 	{ key: "monthlyExpenses", title: "Home", href: paths.dashboard.overview, icon: "home" },
 	{ key: "monthlyTransactions", title: "Monthly Transactions", href: paths.dashboard.transactions, icon: "currency" },
-	// { key: 'share', title: 'Share With Raghu', href: paths.dashboard.customers, icon: 'users' },
+	{ key: "share", title: "Share Calculators", href: paths.dashboard.shareCalculator, icon: "users" },
 	{ key: "categories", title: "Categories", href: paths.dashboard.categories, icon: "gear-six" },
 	{
 		key: "categorySplitSettings",
