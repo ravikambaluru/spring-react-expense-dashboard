@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Dialog, DialogContent, DialogTitle, IconButton, Typography } from "@mui/material";
+import { XIcon } from "@phosphor-icons/react/dist/ssr";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
 import { TransactionDTO } from "@/types/user";
@@ -52,9 +53,9 @@ const TransactionBreakdownModal: React.FC<Props> = ({ open, onClose, user, month
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
 			<DialogTitle>
 				Transactions with {user}
-				<IconButton onClick={onClose} sx={{ float: "right" }}>
-					<Close />
-				</IconButton>
+                                <IconButton onClick={onClose} sx={{ float: "right" }}>
+                                        <XIcon />
+                                </IconButton>
 			</DialogTitle>
 			<DialogContent>
 				<Typography variant="body2" sx={{ mb: 2 }}>

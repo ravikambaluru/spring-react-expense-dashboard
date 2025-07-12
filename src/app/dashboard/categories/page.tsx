@@ -12,6 +12,7 @@ import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
 import { Category } from "@/types/nav";
 import { createCategory, getAllCategories } from "@/lib/api/category";
 import DataTable from "@/components/core/table";
+import LoadingScreen from "@/components/core/loading-screen";
 
 const categoriesColumns: GridColDef[] = [
 	{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
@@ -24,18 +25,25 @@ const categoriesColumns: GridColDef[] = [
 ];
 
 export default function Page(): React.JSX.Element {
-	const [categories, setCategories] = React.useState<Category[]>();
-	const [open, setOpen] = React.useState(false);
-	React.useEffect(() => {
-		getAllCategories().then(setCategories).catch(console.error);
-	}, []);
-        const handleSubmit = (input: unknown) => {
-                input.preventDefault();
-                const value = input.target[0].value;
+        const [categories, setCategories] = React.useState<Category[]>();
+        const [open, setOpen] = React.useState(false);
+        const [loading, setLoading] = React.useState(false);
+        React.useEffect(() => {
+                setLoading(true);
+                getAllCategories()
+                        .then(setCategories)
+                        .catch(console.error)
+                        .finally(() => setLoading(false));
+        }, []);
+        const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+                const value = (event.currentTarget.elements[0] as HTMLInputElement).value;
+                setLoading(true);
                 createCategory(value)
                         .then(() => getAllCategories().then(setCategories))
                         .then(() => setOpen(false))
-                        .catch(console.error);
+                        .catch(console.error)
+                        .finally(() => setLoading(false));
         };
 	return (
 		<>
@@ -58,7 +66,7 @@ export default function Page(): React.JSX.Element {
 					<DataTable rowHeight={40} columns={categoriesColumns} rows={categories || []} />
 				</Grid>
 			</Stack>
-			<Dialog open={open} onClose={() => setOpen(false)}>
+                        <Dialog open={open} onClose={() => setOpen(false)}>
 				<DialogTitle>Add New Category</DialogTitle>
 				<DialogContent sx={{ paddingBottom: 0 }}>
 					<form onSubmit={handleSubmit}>
@@ -78,7 +86,8 @@ export default function Page(): React.JSX.Element {
 						</DialogActions>
 					</form>
 				</DialogContent>
-			</Dialog>
-		</>
-	);
+                        </Dialog>
+                        <LoadingScreen open={loading} />
+                </>
+        );
 }

@@ -46,11 +46,6 @@ export interface DashboardAnalyticsResponse {
 	monthlySummary: MonthlySummaryItem[];
 }
 
-export interface Summary {
-	income: number;
-	expense: number;
-	remaining: number;
-}
 
 export interface CategoryBreakdown {
 	[category: string]: number; // e.g., "EMI": 12534.84
