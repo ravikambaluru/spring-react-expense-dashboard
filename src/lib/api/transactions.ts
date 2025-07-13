@@ -1,22 +1,23 @@
 import { OverviewResponse, transactions } from "@/types/nav";
 import {
-  BalanceSummaryDTO,
-  SettleUpRequest,
-  TransactionDTO,
-  TransactionRequestDTO,
-  TransactionResponseDTO,
+	BalanceSummaryDTO,
+	SettleUpRequest,
+	TransactionDTO,
+	TransactionRequestDTO,
+	TransactionResponseDTO,
 } from "@/types/user";
+
 import axiosInstance from "./axios";
 
 export interface TransactionPayload {
-        startDate: string;
-        endDate: string;
-        category?: string;
+	startDate: string;
+	endDate: string;
+	category?: string;
 }
 export const getTransactionForGivenRange = async ({
-        startDate,
-        endDate,
-        category = "no-cat-filter",
+	startDate,
+	endDate,
+	category = "no-cat-filter",
 }: TransactionPayload): Promise<OverviewResponse> => {
 	const response = await axiosInstance.get("api/expenses/getExpenses/" + startDate + "/" + endDate + "/" + category);
 	return response.data;
@@ -36,6 +37,10 @@ export const createTransaction = async (request: TransactionRequestDTO): Promise
 export const getBalanceSummary = async (month: string): Promise<BalanceSummaryDTO[]> => {
 	const response = await axiosInstance.get<BalanceSummaryDTO[]>(`${BASE_URL}/summary`, { params: { month } });
 	return response.data;
+};
+
+export const recalculateSharedExpenses = async (month: string): Promise<void> => {
+	await axiosInstance.post(`${BASE_URL}/recalculate`, null, { params: { month } });
 };
 
 export const settleUpTransaction = async (request: SettleUpRequest): Promise<TransactionResponseDTO> => {

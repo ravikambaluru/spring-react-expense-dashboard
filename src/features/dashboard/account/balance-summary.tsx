@@ -1,88 +1,107 @@
+// BalanceSummary.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Box, Button, IconButton, MenuItem, Select, Typography } from "@mui/material";
-import { Grid } from "@mui/system";
+import React, { useCallback, useEffect, useState } from "react";
+// ✅ Make sure this import is from @mui/material, not @mui/system
+import { Box, Button, Grid, MenuItem, Select, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { EyeIcon } from "@phosphor-icons/react";
+import { ArrowsCounterClockwise, Eye } from "@phosphor-icons/react";
 
 import { BalanceSummaryDTO } from "@/types/user";
-import { getBalanceSummary } from "@/lib/api/transactions";
+import { getBalanceSummary, recalculateSharedExpenses } from "@/lib/api/transactions";
+import DataTable from "@/components/core/table";
 
-import TransactionBreakdownModal from "./transaction-breakdown-modal";
+const MONTH_OPTIONS = ["2025-07", "2025-06", "2025-05"];
 
-const months = ["2025-07", "2025-06", "2025-05"];
-
-const BalanceSummary = () => {
-	const [month, setMonth] = useState("2025-07");
+const BalanceSummary: React.FC = () => {
+	const [month, setMonth] = useState(MONTH_OPTIONS[0]);
 	const [data, setData] = useState<BalanceSummaryDTO[]>([]);
+	const [loading, setLoading] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
-	useEffect(() => {
-		getBalanceSummary(month).then(setData);
+	const load = useCallback(async () => {
+		setLoading(true);
+		try {
+			const summary = await getBalanceSummary(month);
+			setData(summary);
+		} finally {
+			setLoading(false);
+		}
 	}, [month]);
 
+	useEffect(() => {
+		load();
+	}, [load]);
+
+	const handleRecalc = useCallback(async () => {
+		setLoading(true);
+		try {
+			await recalculateSharedExpenses(month);
+			await load();
+		} finally {
+			setLoading(false);
+		}
+	}, [month, load]);
+
 	const columns: GridColDef[] = [
-		{
-			field: "user",
-			headerName: "User",
-			flex: 1,
-			renderCell: (params) => <Typography variant="h5">{params.value}</Typography>,
-		},
+		{ field: "user", headerName: "User", flex: 1 },
 		{
 			field: "paid",
-			headerName: "Total Paid",
+			headerName: "Paid",
 			flex: 1,
-			renderCell: (params) => <Typography variant="h5">{params.value.toFixed(1)}</Typography>,
+			renderCell: (p) => <Typography>{p.value.toFixed(2)}</Typography>,
 		},
 		{
 			field: "owed",
-			headerName: "Total Owed",
+			headerName: "Owed",
 			flex: 1,
-			renderCell: (params) => <Typography variant="h5">{params.value.toFixed(1)}</Typography>,
+			renderCell: (p) => <Typography>{p.value.toFixed(2)}</Typography>,
 		},
 		{
 			field: "netBalance",
-			headerName: "Net Balance",
+			headerName: "Net",
 			flex: 1,
-			renderCell: (params) => (
-				<Typography variant="h5" style={{ color: params.value >= 0 ? "green" : "red" }}>
-					₹{params.value.toFixed(1)}
-				</Typography>
-			),
+			renderCell: (p) => <Typography color={p.value >= 0 ? "green" : "red"}>₹{p.value.toFixed(2)}</Typography>,
 		},
 		{
 			field: "action",
-			headerName: "Action",
-			flex: 1,
-			renderCell: (params) => (
-				<IconButton onClick={() => setSelectedUser(params.row.user)}>
-					<EyeIcon />
-				</IconButton>
+			headerName: "View",
+			sortable: false,
+			renderCell: (p) => (
+				<Button onClick={() => setSelectedUser(p.row.user as string)}>
+					<Eye size={20} />
+				</Button>
 			),
 		},
 	];
 
 	return (
-		<Grid size={{ lg: 12 }}>
-			<Box sx={{ my: 2 }}>
-				<Select value={month} onChange={(e) => setMonth(e.target.value)} size="small">
-					{months.map((m) => (
-						<MenuItem value={m} key={m}>
-							{m}
-						</MenuItem>
-					))}
-				</Select>
-			</Box>
-			<DataGrid autoHeight rows={data} columns={columns} getRowId={(r) => r.user} />
-			{selectedUser && (
-				<TransactionBreakdownModal
-					open={true}
-					onClose={() => setSelectedUser(null)}
-					user={selectedUser}
-					month={month}
-				/>
-			)}
+		<Grid container spacing={2} sx={{ p: 2 }}>
+			<Grid size={{ lg: 12 }}>
+				<Box display="flex" alignItems="center" gap={2}>
+					<Select size="small" value={month} onChange={(e) => setMonth(e.target.value as string)}>
+						{MONTH_OPTIONS.map((m) => (
+							<MenuItem key={m} value={m}>
+								{m}
+							</MenuItem>
+						))}
+					</Select>
+					<Button
+						startIcon={<ArrowsCounterClockwise size={20} />}
+						variant="contained"
+						onClick={handleRecalc}
+						disabled={loading}
+					>
+						{loading ? "…" : "Recalculate"}
+					</Button>
+				</Box>
+			</Grid>
+
+			<Grid size={{ lg: 12 }}>
+				<Box height={400}>
+					<DataTable columns={columns} rows={data} rowHeight={0} />
+				</Box>
+			</Grid>
 		</Grid>
 	);
 };

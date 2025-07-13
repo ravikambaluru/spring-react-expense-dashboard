@@ -1,8 +1,8 @@
 import * as React from "react";
+import BalanceSummary from "@/features/dashboard/account/balance-summary";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import BalanceSummary from "@/features/dashboard/account/balance-summary";
 
 export default function Page(): React.JSX.Element {
 	return (
