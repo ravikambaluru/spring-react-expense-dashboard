@@ -3,13 +3,15 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 // ✅ Make sure this import is from @mui/material, not @mui/system
-import { Box, Button, Grid, MenuItem, Select, Typography } from "@mui/material";
+import { Box, Button, Grid, IconButton, MenuItem, Select, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { ArrowsCounterClockwise, Eye } from "@phosphor-icons/react";
 
 import { BalanceSummaryDTO } from "@/types/user";
 import { getBalanceSummary, recalculateSharedExpenses } from "@/lib/api/transactions";
 import DataTable from "@/components/core/table";
+
+import TransactionBreakdownModal from "./transaction-breakdown-modal";
 
 const MONTH_OPTIONS = ["2025-07", "2025-06", "2025-05"];
 
@@ -65,44 +67,62 @@ const BalanceSummary: React.FC = () => {
 		},
 		{
 			field: "action",
-			headerName: "View",
+			headerName: "Details",
+			width: 100,
 			sortable: false,
-			renderCell: (p) => (
-				<Button onClick={() => setSelectedUser(p.row.user as string)}>
-					<Eye size={20} />
-				</Button>
-			),
+			filterable: false,
+			renderCell: (params) => {
+				const onClick = (e: React.MouseEvent) => {
+					e.stopPropagation(); // Prevent the grid from hijacking the click
+					setSelectedUser(params.row.user);
+				};
+				return (
+					<IconButton size="small" onClick={onClick}>
+						<Eye size={20} />
+					</IconButton>
+				);
+			},
 		},
 	];
 
 	return (
-		<Grid container spacing={2} sx={{ p: 2 }}>
-			<Grid size={{ lg: 12 }}>
-				<Box display="flex" alignItems="center" gap={2}>
-					<Select size="small" value={month} onChange={(e) => setMonth(e.target.value as string)}>
-						{MONTH_OPTIONS.map((m) => (
-							<MenuItem key={m} value={m}>
-								{m}
-							</MenuItem>
-						))}
-					</Select>
-					<Button
-						startIcon={<ArrowsCounterClockwise size={20} />}
-						variant="contained"
-						onClick={handleRecalc}
-						disabled={loading}
-					>
-						{loading ? "…" : "Recalculate"}
-					</Button>
-				</Box>
-			</Grid>
+		<>
+			<Grid container spacing={2} sx={{ p: 2 }}>
+				<Grid size={{ lg: 12 }}>
+					<Box display="flex" alignItems="center" gap={2}>
+						<Select size="small" value={month} onChange={(e) => setMonth(e.target.value as string)}>
+							{MONTH_OPTIONS.map((m) => (
+								<MenuItem key={m} value={m}>
+									{m}
+								</MenuItem>
+							))}
+						</Select>
+						<Button
+							startIcon={<ArrowsCounterClockwise size={20} />}
+							variant="contained"
+							onClick={handleRecalc}
+							disabled={loading}
+						>
+							{loading ? "…" : "Recalculate"}
+						</Button>
+					</Box>
+				</Grid>
 
-			<Grid size={{ lg: 12 }}>
-				<Box height={400}>
-					<DataTable columns={columns} rows={data} rowHeight={0} />
-				</Box>
+				<Grid size={{ lg: 12 }}>
+					<Box height={400}>
+						<DataTable columns={columns} rows={data} rowHeight={0} />
+					</Box>
+				</Grid>
 			</Grid>
-		</Grid>
+			{selectedUser && (
+				<TransactionBreakdownModal
+					open={true} // must be a boolean
+					onClose={() => setSelectedUser(null)}
+					user={selectedUser}
+					month={month}
+				/>
+			)}
+		</>
 	);
 };
 

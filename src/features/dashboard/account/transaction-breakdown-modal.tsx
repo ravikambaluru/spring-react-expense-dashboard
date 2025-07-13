@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Dialog, DialogContent, DialogTitle, IconButton, Typography } from "@mui/material";
-import { XIcon } from "@phosphor-icons/react/dist/ssr";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { XIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { TransactionDTO } from "@/types/user";
 import { getTransactionBreakdown, settleUpTransaction } from "@/lib/api/transactions";
+import DataTable from "@/components/core/table";
 
 interface Props {
 	open: boolean;
@@ -33,6 +34,7 @@ const TransactionBreakdownModal: React.FC<Props> = ({ open, onClose, user, month
 		});
 		onClose(); // Optionally refresh parent
 	};
+	// rows: Array<{ amount: number; … }>
 
 	const columns: GridColDef[] = [
 		{ field: "description", headerName: "Description", flex: 1 },
@@ -53,15 +55,15 @@ const TransactionBreakdownModal: React.FC<Props> = ({ open, onClose, user, month
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
 			<DialogTitle>
 				Transactions with {user}
-                                <IconButton onClick={onClose} sx={{ float: "right" }}>
-                                        <XIcon />
-                                </IconButton>
+				<IconButton onClick={onClose} sx={{ float: "right" }}>
+					<XIcon />
+				</IconButton>
 			</DialogTitle>
 			<DialogContent>
 				<Typography variant="body2" sx={{ mb: 2 }}>
 					These are shared expenses contributing to the balance with {user}.
 				</Typography>
-				<DataGrid autoHeight rows={rows} columns={columns} getRowId={(r) => r.id} />
+				<DataTable columns={columns} rows={rows} rowHeight={0} />
 			</DialogContent>
 		</Dialog>
 	);
