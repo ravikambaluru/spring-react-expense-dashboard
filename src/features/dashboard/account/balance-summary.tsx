@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Button, MenuItem, Select } from "@mui/material";
+import { Box, Button, IconButton, MenuItem, Select, Typography } from "@mui/material";
 import { Grid } from "@mui/system";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { EyeIcon } from "@phosphor-icons/react";
 
 import { BalanceSummaryDTO } from "@/types/user";
 import { getBalanceSummary } from "@/lib/api/transactions";
@@ -22,20 +23,43 @@ const BalanceSummary = () => {
 	}, [month]);
 
 	const columns: GridColDef[] = [
-		{ field: "user", headerName: "User", flex: 1 },
-		{ field: "paid", headerName: "Total Paid", flex: 1 },
-		{ field: "owed", headerName: "Total Owed", flex: 1 },
+		{
+			field: "user",
+			headerName: "User",
+			flex: 1,
+			renderCell: (params) => <Typography variant="h5">{params.value}</Typography>,
+		},
+		{
+			field: "paid",
+			headerName: "Total Paid",
+			flex: 1,
+			renderCell: (params) => <Typography variant="h5">{params.value.toFixed(1)}</Typography>,
+		},
+		{
+			field: "owed",
+			headerName: "Total Owed",
+			flex: 1,
+			renderCell: (params) => <Typography variant="h5">{params.value.toFixed(1)}</Typography>,
+		},
 		{
 			field: "netBalance",
 			headerName: "Net Balance",
 			flex: 1,
-			renderCell: (params) => <span style={{ color: params.value >= 0 ? "green" : "red" }}>₹{params.value}</span>,
+			renderCell: (params) => (
+				<Typography variant="h5" style={{ color: params.value >= 0 ? "green" : "red" }}>
+					₹{params.value.toFixed(1)}
+				</Typography>
+			),
 		},
 		{
 			field: "action",
 			headerName: "Action",
 			flex: 1,
-			renderCell: (params) => <Button onClick={() => setSelectedUser(params.row.user)}>📜 View</Button>,
+			renderCell: (params) => (
+				<IconButton onClick={() => setSelectedUser(params.row.user)}>
+					<EyeIcon />
+				</IconButton>
+			),
 		},
 	];
 
