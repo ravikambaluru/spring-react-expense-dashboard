@@ -13,7 +13,9 @@ import DataTable from "@/components/core/table";
 
 import TransactionBreakdownModal from "./transaction-breakdown-modal";
 
-const MONTH_OPTIONS = ["2025-07", "2025-06", "2025-05"];
+const MONTH_OPTIONS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(
+	(month) => `2025-${month}`
+);
 
 const BalanceSummary: React.FC = () => {
 	const [month, setMonth] = useState(MONTH_OPTIONS[0]);

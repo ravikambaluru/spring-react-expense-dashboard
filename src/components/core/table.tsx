@@ -15,12 +15,6 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 	});
 
 	// 🔁 Reset page when rows change (especially due to filtering, etc.)
-	React.useEffect(() => {
-		setPaginationModel((prev) => ({
-			...prev,
-			page: 0,
-		}));
-	}, [rows]);
 
 	return (
 		<div style={{ width: "100%" }}>
@@ -41,8 +35,11 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 					return `${row.user}-${row.transactionDate}-${row.amount}`;
 				}}
 				pageSizeOptions={[5, 10, 25, 50, 100]}
-				paginationModel={paginationModel}
-				onPaginationModelChange={setPaginationModel}
+				initialState={{
+					pagination: {
+						paginationModel: { pageSize: 10, page: 0 },
+					},
+				}}
 				showToolbar
 				sortModel={[{ field: "transactionDate", sort: "asc" }]}
 				disableRowSelectionOnClick

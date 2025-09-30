@@ -37,6 +37,7 @@ const TransactionBreakdownModal: React.FC<Props> = ({ open, onClose, user, month
 	// rows: Array<{ amount: number; … }>
 
 	const columns: GridColDef[] = [
+		{ field: "id", headerName: "ID", flex: 1 },
 		{ field: "description", headerName: "Description", flex: 1 },
 		{ field: "category", headerName: "Category", flex: 1 },
 		{ field: "amount", headerName: "Amount", flex: 1 },
