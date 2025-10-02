@@ -1,6 +1,8 @@
 import React from "react";
 import { DataGrid, GridColDef, GridPaginationModel, GridRowsProp, GridToolbar } from "@mui/x-data-grid";
 
+import { Category } from "@/types/nav";
+
 type DataTableProps = {
 	columns: GridColDef[];
 	rows: GridRowsProp;
@@ -9,13 +11,6 @@ type DataTableProps = {
 };
 
 const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, rowHeight }) => {
-	const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
-		page: 0,
-		pageSize: 10,
-	});
-
-	// 🔁 Reset page when rows change (especially due to filtering, etc.)
-
 	return (
 		<div style={{ width: "100%" }}>
 			<DataGrid
@@ -41,7 +36,6 @@ const DataTable: React.FC<DataTableProps> = ({ columns, rows, loading = false, r
 					},
 				}}
 				showToolbar
-				sortModel={[{ field: "transactionDate", sort: "asc" }]}
 				disableRowSelectionOnClick
 				rowHeight={rowHeight}
 				slots={{ toolbar: GridToolbar }}
