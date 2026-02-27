@@ -78,3 +78,25 @@ export interface CategorySplitSettingResponse {
 	percentage: number;
 	createdAt: string;
 }
+
+export type CategoryRulePatternType = "EXACT" | "CONTAINS" | "STARTS_WITH" | "REGEX";
+
+export interface CategoryRuleResponse {
+	id: number;
+	patternType: CategoryRulePatternType;
+	patternValue: string;
+	categoryId: number;
+	categoryName: string;
+	priority: number;
+	confidence: number;
+	active: boolean;
+}
+
+export interface CategoryRuleRequest {
+	patternType: CategoryRulePatternType;
+	patternValue: string;
+	categoryId: number;
+	priority: number;
+	confidence: number;
+	active: boolean;
+}
