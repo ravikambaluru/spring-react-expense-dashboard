@@ -7,6 +7,7 @@ export const paths = {
 		shareCalculator: "/dashboard/account",
 		categories: "/dashboard/categories",
 		categorySplitSettings: "/dashboard/integrations",
+		autoCategorization: "/dashboard/auto-categorization",
 		settings: "/dashboard/settings",
 	},
 	errors: { notFound: "/errors/not-found" },

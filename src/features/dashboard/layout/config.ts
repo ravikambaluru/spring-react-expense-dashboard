@@ -7,6 +7,12 @@ export const navItems = [
 	{ key: "share", title: "Share Calculators", href: paths.dashboard.shareCalculator, icon: "users" },
 	{ key: "categories", title: "Categories", href: paths.dashboard.categories, icon: "gear-six" },
 	{
+		key: "autoCategorization",
+		title: "Auto Categorization",
+		href: paths.dashboard.autoCategorization,
+		icon: "chart-pie",
+	},
+	{
 		key: "categorySplitSettings",
 		title: "Category Split Settings",
 		href: paths.dashboard.categorySplitSettings,
