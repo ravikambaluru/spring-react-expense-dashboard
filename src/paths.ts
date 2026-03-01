@@ -5,7 +5,7 @@ export const paths = {
 		overview: "/dashboard",
 		transactions: "/dashboard/transactions",
 		shareCalculator: "/dashboard/account",
-		categories: "/dashboard/categories",
+		categories: "/dashboard/category-studio",
 		categorySplitSettings: "/dashboard/integrations",
 		autoCategorization: "/dashboard/auto-categorization",
 		settings: "/dashboard/settings",
