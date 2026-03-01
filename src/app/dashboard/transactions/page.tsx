@@ -1,7 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Checkbox, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material";
+import { Budget } from "@/features/dashboard/overview/budget";
+import {
+	Box,
+	Checkbox,
+	Chip,
+	FormControl,
+	Grid,
+	InputLabel,
+	MenuItem,
+	Paper,
+	Select,
+	Stack,
+	Typography,
+} from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
@@ -9,32 +22,33 @@ import dayjs, { Dayjs } from "dayjs";
 import { OverviewResponse, transactions } from "@/types/nav";
 import { getCategories } from "@/lib/api/category";
 import { getTransactionForGivenRange, updateTransaction } from "@/lib/api/transactions";
-import DataTable from "@/components/core/table";
-import { Budget } from "@/features/dashboard/overview/budget";
 import LoadingScreen from "@/components/core/loading-screen";
+import DataTable from "@/components/core/table";
 
 export default function Page(): React.JSX.Element {
 	const [overviewResponse, setOverviewResponse] = React.useState<OverviewResponse>();
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
-        const [categories, setCategories] = React.useState<string[]>([]);
-        const [catFilter, setCatFilter] = React.useState<string>();
-        const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
-        const [loading, setLoading] = React.useState(false);
+	const [categories, setCategories] = React.useState<string[]>([]);
+	const [catFilter, setCatFilter] = React.useState<string>("all");
+	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
+	const [loading, setLoading] = React.useState(false);
+	const UNCATEGORIZED_VALUE = "__uncategorized__";
 
-        const fetchTransactions = React.useCallback(() => {
-                if (!startDate || !endDate) return;
-                setLoading(true);
-                getTransactionForGivenRange({
-                        startDate: startDate.format("YYYY-MM-DD"),
-                        endDate: endDate.format("YYYY-MM-DD"),
-                        category: catFilter,
-                })
-                        .then(setOverviewResponse)
-                        .then(() => setTriggerReload(false))
-                        .catch(console.error)
-                        .finally(() => setLoading(false));
-        }, [startDate, endDate, catFilter]);
+	const fetchTransactions = React.useCallback(() => {
+		if (!startDate || !endDate) return;
+		setLoading(true);
+		const backendCategoryFilter = catFilter === "all" || catFilter === UNCATEGORIZED_VALUE ? undefined : catFilter;
+		getTransactionForGivenRange({
+			startDate: startDate.format("YYYY-MM-DD"),
+			endDate: endDate.format("YYYY-MM-DD"),
+			category: backendCategoryFilter,
+		})
+			.then(setOverviewResponse)
+			.then(() => setTriggerReload(false))
+			.catch(console.error)
+			.finally(() => setLoading(false));
+	}, [startDate, endDate, catFilter, UNCATEGORIZED_VALUE]);
 
 	React.useEffect(() => {
 		getCategories().then(setCategories).catch(console.error);
@@ -44,26 +58,42 @@ export default function Page(): React.JSX.Element {
 		fetchTransactions();
 	}, [fetchTransactions, triggerReload]);
 
-        const handleTransactionUpdate = (payload: transactions, changes: Partial<transactions>) => {
-                const updatedPayload = {
-                        ...payload,
-                        ...changes,
-                };
-                setLoading(true);
-                updateTransaction(updatedPayload)
-                        .then(fetchTransactions)
-                        .catch(console.error)
-                        .finally(() => setLoading(false));
-                setTriggerReload(true);
-        };
+	const handleTransactionUpdate = (payload: transactions, changes: Partial<transactions>) => {
+		const updatedPayload = {
+			...payload,
+			...changes,
+		};
+		setLoading(true);
+		updateTransaction(updatedPayload)
+			.then(fetchTransactions)
+			.catch(console.error)
+			.finally(() => setLoading(false));
+		setTriggerReload(true);
+	};
 
-        const renderCheckbox = (field: keyof transactions, handler: typeof handleTransactionUpdate) =>
-                function Cell({ row }: GridRenderCellParams<transactions>) {
-                        const value = row[field as keyof transactions] as boolean;
-                        return <Checkbox checked={value} onChange={(e) => handler(row, { [field]: e.target.checked })} />;
-                };
+	const renderCheckbox = (field: keyof transactions, handler: typeof handleTransactionUpdate) =>
+		function Cell({ row }: GridRenderCellParams<transactions>) {
+			const value = row[field as keyof transactions] as boolean;
+			return <Checkbox checked={value} onChange={(e) => handler(row, { [field]: e.target.checked })} />;
+		};
 
-	const transactionColumns: GridColDef[] = [
+	const categoryValueOptions = React.useMemo(() => [...categories, "Uncategorized"], [categories]);
+
+	const filteredTransactions = React.useMemo(() => {
+		const rows = overviewResponse?.transactions || [];
+
+		if (catFilter === "all") {
+			return rows;
+		}
+
+		if (catFilter === UNCATEGORIZED_VALUE) {
+			return rows.filter((row) => !row?.category?.category);
+		}
+
+		return rows.filter((row) => row?.category?.category === catFilter);
+	}, [overviewResponse?.transactions, catFilter, UNCATEGORIZED_VALUE]);
+
+	const transactionColumns: GridColDef<transactions>[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
 		{ field: "transactionDate", headerName: "Date", flex: 0.5, minWidth: 40 },
 		{ field: "transactionMessage", headerName: "Message", flex: 1, minWidth: 200 },
@@ -73,9 +103,13 @@ export default function Page(): React.JSX.Element {
 			flex: 0.25,
 			minWidth: 40,
 			renderCell: ({ row }) => (
-				<span style={{ color: row.isIncome ? "green" : "red", fontWeight: 600, fontSize: 18 }}>
-					₹ {row.transactionAmount}
-				</span>
+				<Chip
+					label={`₹ ${row.transactionAmount}`}
+					size="small"
+					color={row.isIncome ? "success" : "error"}
+					variant={row.isIncome ? "filled" : "outlined"}
+					sx={{ fontWeight: 700 }}
+				/>
 			),
 		},
 		{
@@ -107,7 +141,8 @@ export default function Page(): React.JSX.Element {
 			align: "center",
 			type: "singleSelect",
 			filterable: true,
-			valueOptions: ["Groceries", "Health", "Shopping", "EMI"],
+			valueGetter: (_value, row) => row?.category?.category || "Uncategorized",
+			valueOptions: categoryValueOptions,
 			renderCell: ({ row }) => (
 				<FormControl size="medium" style={{ marginTop: 10 }}>
 					<InputLabel>Category</InputLabel>
@@ -131,10 +166,17 @@ export default function Page(): React.JSX.Element {
 	return (
 		<Grid container spacing={3}>
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-				<Typography variant="h4">Monthly Transactions</Typography>
+				<Stack spacing={1}>
+					<Typography variant="h4" fontWeight={700}>
+						Monthly Transactions
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Track, categorize, and review your transactions with flexible filters.
+					</Typography>
+				</Stack>
 			</Grid>
 
-                        {["income", "expenses", "remaining"].map((type) => (
+			{["income", "expenses", "remaining"].map((type) => (
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={type}>
 					<Budget
 						title={type.toUpperCase()}
@@ -165,6 +207,8 @@ export default function Page(): React.JSX.Element {
 				<FormControl fullWidth>
 					<InputLabel>Category</InputLabel>
 					<Select label="Category" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
+						<MenuItem value="all">All Categories</MenuItem>
+						<MenuItem value={UNCATEGORIZED_VALUE}>Uncategorized (null)</MenuItem>
 						{categories.map((cat) => (
 							<MenuItem key={cat} value={cat}>
 								{cat}
@@ -175,14 +219,24 @@ export default function Page(): React.JSX.Element {
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-                                <DataTable
-                                        loading={triggerReload}
-                                        rowHeight={80}
-                                        columns={transactionColumns}
-                                        rows={overviewResponse?.transactions || []}
-                                />
-                        </Grid>
-                        <LoadingScreen open={loading} />
-                </Grid>
-        );
+				<Paper
+					elevation={0}
+					sx={{ p: 2, borderRadius: 2, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
+				>
+					<Box sx={{ mb: 1 }}>
+						<Typography variant="subtitle2" color="text.secondary">
+							{filteredTransactions.length} transactions found
+						</Typography>
+					</Box>
+					<DataTable
+						loading={loading || triggerReload}
+						rowHeight={80}
+						columns={transactionColumns}
+						rows={filteredTransactions}
+					/>
+				</Paper>
+			</Grid>
+			<LoadingScreen open={loading} />
+		</Grid>
+	);
 }
