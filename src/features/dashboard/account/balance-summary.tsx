@@ -11,47 +11,88 @@ import DataTable from "@/components/core/table";
 
 import TransactionBreakdownModal from "./transaction-breakdown-modal";
 
-const MONTH_OPTIONS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(
-	(month) => `2025-${month}`
-);
+const MONTH_OPTIONS = [
+	{ value: "01", label: "January" },
+	{ value: "02", label: "February" },
+	{ value: "03", label: "March" },
+	{ value: "04", label: "April" },
+	{ value: "05", label: "May" },
+	{ value: "06", label: "June" },
+	{ value: "07", label: "July" },
+	{ value: "08", label: "August" },
+	{ value: "09", label: "September" },
+	{ value: "10", label: "October" },
+	{ value: "11", label: "November" },
+	{ value: "12", label: "December" },
+];
+
+const AVAILABLE_YEARS = Array.from({ length: 5 }, (_, i) => `${new Date().getFullYear() - 2 + i}`);
+
+const buildMonthParam = (year: string, month: string): string => `${year}-${month}`;
 
 const rupee = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 const BalanceSummary: React.FC = () => {
-	const [month, setMonth] = useState(MONTH_OPTIONS[0]);
+	const [year, setYear] = useState(`${new Date().getFullYear()}`);
+	const [month, setMonth] = useState(`${new Date().getMonth() + 1}`.padStart(2, "0"));
 	const [data, setData] = useState<BalanceSummaryDTO[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [ytdDue, setYtdDue] = useState(0);
+	const [ytdLoading, setYtdLoading] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
+	const monthParam = useMemo(() => buildMonthParam(year, month), [year, month]);
 
 	const load = useCallback(async () => {
 		setLoading(true);
 		try {
-			const summary = await getBalanceSummary(month);
+			const summary = await getBalanceSummary(monthParam);
 			setData(summary);
 		} finally {
 			setLoading(false);
 		}
-	}, [month]);
+	}, [monthParam]);
+
+	const loadYtdDue = useCallback(async () => {
+		setYtdLoading(true);
+		try {
+			const targetMonth = Number(month);
+			const allMonths = MONTH_OPTIONS.slice(0, targetMonth).map(({ value }) => buildMonthParam(year, value));
+			const summaries = await Promise.all(allMonths.map(async (m) => getBalanceSummary(m)));
+			const due = summaries.reduce((sum, summary) => {
+				const unsettledForMonth = summary.reduce((monthSum, user) => monthSum + Math.max(user.owed - user.paid, 0), 0);
+				return sum + unsettledForMonth;
+			}, 0);
+			setYtdDue(due);
+		} finally {
+			setYtdLoading(false);
+		}
+	}, [month, year]);
 
 	useEffect(() => {
 		load();
 	}, [load]);
 
+	useEffect(() => {
+		loadYtdDue();
+	}, [loadYtdDue]);
+
 	const handleRecalc = useCallback(async () => {
 		setLoading(true);
 		try {
-			await recalculateSharedExpenses(month);
+			await recalculateSharedExpenses(monthParam);
 			await load();
+			await loadYtdDue();
 		} finally {
 			setLoading(false);
 		}
-	}, [month, load]);
+	}, [monthParam, load, loadYtdDue]);
 
 	const totals = useMemo(
 		() => ({
 			totalPaid: data.reduce((sum, user) => sum + user.paid, 0),
 			totalOwed: data.reduce((sum, user) => sum + user.owed, 0),
-			positiveBalances: data.filter((user) => user.netBalance > 0).length,
+			unsettledUsers: data.filter((user) => Math.abs(user.netBalance) > 0.01).length,
+			unsettledAmount: data.reduce((sum, user) => sum + Math.max(user.owed - user.paid, 0), 0),
 		}),
 		[data]
 	);
@@ -63,23 +104,23 @@ const BalanceSummary: React.FC = () => {
 			headerName: "Paid",
 			flex: 1,
 			minWidth: 130,
-			renderCell: (p: { value: number }) => <Typography fontWeight={600}>₹ {rupee.format(p.value)}</Typography>,
+			renderCell: (p) => <Typography fontWeight={600}>₹ {rupee.format(Number(p.value ?? 0))}</Typography>,
 		},
 		{
 			field: "owed",
 			headerName: "Owed",
 			flex: 1,
 			minWidth: 130,
-			renderCell: (p: { value: number }) => <Typography>₹ {rupee.format(p.value)}</Typography>,
+			renderCell: (p) => <Typography>₹ {rupee.format(Number(p.value ?? 0))}</Typography>,
 		},
 		{
 			field: "netBalance",
 			headerName: "Net Balance",
 			flex: 1,
 			minWidth: 150,
-			renderCell: (p: { value: number }) => (
-				<Typography color={p.value >= 0 ? "success.main" : "error.main"} fontWeight={700}>
-					₹ {rupee.format(p.value)}
+			renderCell: (p) => (
+				<Typography color={Number(p.value ?? 0) >= 0 ? "success.main" : "error.main"} fontWeight={700}>
+					₹ {rupee.format(Number(p.value ?? 0))}
 				</Typography>
 			),
 		},
@@ -115,10 +156,17 @@ const BalanceSummary: React.FC = () => {
 								</Typography>
 							</Stack>
 							<Stack direction="row" spacing={1.5}>
+								<Select size="small" value={year} onChange={(e) => setYear(e.target.value as string)}>
+									{AVAILABLE_YEARS.map((y) => (
+										<MenuItem key={y} value={y}>
+											{y}
+										</MenuItem>
+									))}
+								</Select>
 								<Select size="small" value={month} onChange={(e) => setMonth(e.target.value as string)}>
 									{MONTH_OPTIONS.map((m) => (
-										<MenuItem key={m} value={m}>
-											{m}
+										<MenuItem key={m.value} value={m.value}>
+											{m.label}
 										</MenuItem>
 									))}
 								</Select>
@@ -153,9 +201,22 @@ const BalanceSummary: React.FC = () => {
 							<Grid size={{ xs: 12, md: 4 }}>
 								<Box sx={{ p: 2, borderRadius: 2, bgcolor: "var(--mui-palette-background-level1)" }}>
 									<Typography variant="overline" color="text.secondary">
-										Users to Receive
+										Unsettled Participants
 									</Typography>
-									<Typography variant="h5">{totals.positiveBalances}</Typography>
+									<Typography variant="h5">{totals.unsettledUsers}</Typography>
+									<Typography variant="body2" color="text.secondary">
+										Pending to settle: ₹ {rupee.format(totals.unsettledAmount)}
+									</Typography>
+								</Box>
+							</Grid>
+							<Grid size={{ xs: 12, md: 4 }}>
+								<Box sx={{ p: 2, borderRadius: 2, bgcolor: "var(--mui-palette-background-level1)" }}>
+									<Typography variant="overline" color="text.secondary">
+										Due from start of year
+									</Typography>
+									<Typography variant="h5">
+										{ytdLoading ? "Calculating..." : `₹ ${rupee.format(ytdDue)}`}
+									</Typography>
 								</Box>
 							</Grid>
 						</Grid>
@@ -164,7 +225,9 @@ const BalanceSummary: React.FC = () => {
 					</Stack>
 				</CardContent>
 			</Card>
-			{selectedUser ? <TransactionBreakdownModal open onClose={() => setSelectedUser(null)} user={selectedUser} month={month} /> : null}
+			{selectedUser ? (
+				<TransactionBreakdownModal open onClose={() => setSelectedUser(null)} user={selectedUser} month={monthParam} />
+			) : null}
 		</>
 	);
 };
