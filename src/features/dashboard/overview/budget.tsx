@@ -23,7 +23,7 @@ export function Budget({
 	title,
 	sx,
 	value,
-	isValueVisible = true,
+	isValueVisible = false,
 	onVisibilityToggle,
 }: BudgetProps): React.JSX.Element {
 	return (
