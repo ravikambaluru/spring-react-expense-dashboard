@@ -19,8 +19,8 @@ export default function Page(): React.JSX.Element {
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("month"));
 	const [isShared, setIsShared] = React.useState<boolean>(false);
-	const [showIncome, setShowIncome] = React.useState(true);
-	const [showSharedExpense, setShowSharedExpense] = React.useState(true);
+	const [showIncome, setShowIncome] = React.useState(false);
+	const [showSharedExpense, setShowSharedExpense] = React.useState(false);
 	const [showPersonalExpense, setShowPersonalExpense] = React.useState(true);
 	const [data, setData] = React.useState<DashboardAnalyticsResponse | null>(null);
 	const [loading, setLoading] = React.useState(false);
