@@ -39,7 +39,14 @@ export default function Page(): React.JSX.Element {
 	const [loading, setLoading] = React.useState(false);
 	const UNCATEGORIZED_VALUE = "__uncategorized__";
 
-	const getAmount = React.useCallback((amount: string) => Number.parseFloat(amount.replaceAll(",", "")) || 0, []);
+	const getAmount = React.useCallback((amount: string | number | null | undefined) => {
+		if (amount === null || amount === undefined) {
+			return 0;
+		}
+
+		const normalizedAmount = String(amount).replaceAll(",", "").trim();
+		return Number.parseFloat(normalizedAmount) || 0;
+	}, []);
 
 	const fetchTransactions = React.useCallback(() => {
 		if (!startDate || !endDate) return;
