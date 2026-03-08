@@ -7,12 +7,14 @@ import {
 	Checkbox,
 	Chip,
 	FormControl,
+	FormControlLabel,
 	Grid,
 	InputLabel,
 	MenuItem,
 	Paper,
 	Select,
 	Stack,
+	Switch,
 	Typography,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
@@ -31,9 +33,13 @@ export default function Page(): React.JSX.Element {
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
 	const [catFilter, setCatFilter] = React.useState<string>("all");
+	const [showIncome, setShowIncome] = React.useState(true);
+	const [showExpenses, setShowExpenses] = React.useState(true);
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
 	const [loading, setLoading] = React.useState(false);
 	const UNCATEGORIZED_VALUE = "__uncategorized__";
+
+	const getAmount = React.useCallback((amount: string) => Number.parseFloat(amount.replaceAll(",", "")) || 0, []);
 
 	const fetchTransactions = React.useCallback(() => {
 		if (!startDate || !endDate) return;
@@ -82,16 +88,31 @@ export default function Page(): React.JSX.Element {
 	const filteredTransactions = React.useMemo(() => {
 		const rows = overviewResponse?.transactions || [];
 
-		if (catFilter === "all") {
-			return rows;
-		}
+		let categoryFilteredRows = rows;
 
 		if (catFilter === UNCATEGORIZED_VALUE) {
-			return rows.filter((row) => !row?.category?.category);
+			categoryFilteredRows = rows.filter((row) => !row?.category?.category);
+		} else if (catFilter !== "all") {
+			categoryFilteredRows = rows.filter((row) => row?.category?.category === catFilter);
 		}
 
-		return rows.filter((row) => row?.category?.category === catFilter);
-	}, [overviewResponse?.transactions, catFilter, UNCATEGORIZED_VALUE]);
+		return categoryFilteredRows.filter((row) => (showIncome && row.isIncome) || (showExpenses && !row.isIncome));
+	}, [overviewResponse?.transactions, catFilter, showIncome, showExpenses, UNCATEGORIZED_VALUE]);
+
+	const summary = React.useMemo(() => {
+		const income = filteredTransactions
+			.filter((transaction) => transaction.isIncome)
+			.reduce((acc, transaction) => acc + getAmount(transaction.transactionAmount), 0);
+		const expenses = filteredTransactions
+			.filter((transaction) => !transaction.isIncome)
+			.reduce((acc, transaction) => acc + getAmount(transaction.transactionAmount), 0);
+
+		return {
+			income,
+			expenses,
+			remaining: income - expenses,
+		};
+	}, [filteredTransactions, getAmount]);
 
 	const transactionColumns: GridColDef<transactions>[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
@@ -181,7 +202,7 @@ export default function Page(): React.JSX.Element {
 					<Budget
 						title={type.toUpperCase()}
 						sx={{ height: "100%" }}
-						value={(overviewResponse?.[type as keyof OverviewResponse] ?? 0).toLocaleString()}
+						value={summary[type as keyof typeof summary].toLocaleString()}
 					/>
 				</Grid>
 			))}
@@ -216,6 +237,19 @@ export default function Page(): React.JSX.Element {
 						))}
 					</Select>
 				</FormControl>
+			</Grid>
+
+			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
+				<Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+					<FormControlLabel
+						control={<Switch checked={showIncome} onChange={(event) => setShowIncome(event.target.checked)} />}
+						label="Show income"
+					/>
+					<FormControlLabel
+						control={<Switch checked={showExpenses} onChange={(event) => setShowExpenses(event.target.checked)} />}
+						label="Show expenses"
+					/>
+				</Stack>
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
