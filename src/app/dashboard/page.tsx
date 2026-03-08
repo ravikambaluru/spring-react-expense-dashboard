@@ -21,7 +21,7 @@ export default function Page(): React.JSX.Element {
 	const [isShared, setIsShared] = React.useState<boolean>(false);
 	const [showIncome, setShowIncome] = React.useState(false);
 	const [showSharedExpense, setShowSharedExpense] = React.useState(false);
-	const [showPersonalExpense, setShowPersonalExpense] = React.useState(true);
+	const [showPersonalExpense, setShowPersonalExpense] = React.useState(false);
 	const [data, setData] = React.useState<DashboardAnalyticsResponse | null>(null);
 	const [loading, setLoading] = React.useState(false);
 

@@ -33,10 +33,8 @@ export default function Page(): React.JSX.Element {
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
 	const [catFilter, setCatFilter] = React.useState<string>("all");
-	const [showIncome, setShowIncome] = React.useState(false);
-	const [showExpenses, setShowExpenses] = React.useState(false);
-	const [showIncomeSummary, setShowIncomeSummary] = React.useState(true);
-	const [showExpenseSummary, setShowExpenseSummary] = React.useState(true);
+	const [showIncomeSummary, setShowIncomeSummary] = React.useState(false);
+	const [showExpenseSummary, setShowExpenseSummary] = React.useState(false);
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
 	const [loading, setLoading] = React.useState(false);
 	const UNCATEGORIZED_VALUE = "__uncategorized__";
@@ -98,8 +96,8 @@ export default function Page(): React.JSX.Element {
 			categoryFilteredRows = rows.filter((row) => row?.category?.category === catFilter);
 		}
 
-		return categoryFilteredRows.filter((row) => (showIncome && row.isIncome) || (showExpenses && !row.isIncome));
-	}, [overviewResponse?.transactions, catFilter, showIncome, showExpenses, UNCATEGORIZED_VALUE]);
+		return categoryFilteredRows;
+	}, [overviewResponse?.transactions, catFilter, UNCATEGORIZED_VALUE]);
 
 	const summary = React.useMemo(() => {
 		const income = filteredTransactions
