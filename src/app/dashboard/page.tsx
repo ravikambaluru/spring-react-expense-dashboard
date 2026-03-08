@@ -19,6 +19,9 @@ export default function Page(): React.JSX.Element {
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("month"));
 	const [isShared, setIsShared] = React.useState<boolean>(false);
+	const [showIncome, setShowIncome] = React.useState(true);
+	const [showSharedExpense, setShowSharedExpense] = React.useState(true);
+	const [showPersonalExpense, setShowPersonalExpense] = React.useState(true);
 	const [data, setData] = React.useState<DashboardAnalyticsResponse | null>(null);
 	const [loading, setLoading] = React.useState(false);
 
@@ -49,14 +52,29 @@ export default function Page(): React.JSX.Element {
 				</Grid>
 
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
-					<Budget title="Income" value={` ${income.toFixed(1)}`} />
+					<Budget
+						title="Income"
+						value={` ${income.toFixed(1)}`}
+						isValueVisible={showIncome}
+						onVisibilityToggle={() => setShowIncome((prev) => !prev)}
+					/>
 				</Grid>
 
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
-					<Budget title="Shared Expense" value={` ${shared.toFixed(1)}`} />
+					<Budget
+						title="Shared Expense"
+						value={` ${shared.toFixed(1)}`}
+						isValueVisible={showSharedExpense}
+						onVisibilityToggle={() => setShowSharedExpense((prev) => !prev)}
+					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
-					<Budget title="Personal Expenses" value={` ${personal.toFixed(1)}`} />
+					<Budget
+						title="Personal Expenses"
+						value={` ${personal.toFixed(1)}`}
+						isValueVisible={showPersonalExpense}
+						onVisibilityToggle={() => setShowPersonalExpense((prev) => !prev)}
+					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
 					<Budget title="Savings" value={` ${savings.toFixed(1)}`} />
