@@ -256,19 +256,6 @@ export default function Page(): React.JSX.Element {
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-				<Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-					<FormControlLabel
-						control={<Switch checked={showIncome} onChange={(event) => setShowIncome(event.target.checked)} />}
-						label="Show income"
-					/>
-					<FormControlLabel
-						control={<Switch checked={showExpenses} onChange={(event) => setShowExpenses(event.target.checked)} />}
-						label="Show expenses"
-					/>
-				</Stack>
-			</Grid>
-
-			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
 				<Paper
 					elevation={0}
 					sx={{ p: 2, borderRadius: 2, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
