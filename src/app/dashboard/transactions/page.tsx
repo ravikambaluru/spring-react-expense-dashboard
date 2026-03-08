@@ -31,9 +31,22 @@ export default function Page(): React.JSX.Element {
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
 	const [catFilter, setCatFilter] = React.useState<string>("all");
+	const [showIncomeSummary, setShowIncomeSummary] = React.useState(false);
+	const [showExpenseSummary, setShowExpenseSummary] = React.useState(false);
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
 	const [loading, setLoading] = React.useState(false);
 	const UNCATEGORIZED_VALUE = "__uncategorized__";
+
+	const getAmount = React.useCallback((amount: unknown) => {
+		if (typeof amount === "number") {
+			return Number.isFinite(amount) ? amount : 0;
+		}
+
+		const normalizedAmount = String(amount ?? "").replaceAll(",", "");
+		const parsedAmount = Number.parseFloat(normalizedAmount);
+
+		return Number.isFinite(parsedAmount) ? parsedAmount : 0;
+	}, []);
 
 	const fetchTransactions = React.useCallback(() => {
 		if (!startDate || !endDate) return;
@@ -82,16 +95,31 @@ export default function Page(): React.JSX.Element {
 	const filteredTransactions = React.useMemo(() => {
 		const rows = overviewResponse?.transactions || [];
 
-		if (catFilter === "all") {
-			return rows;
-		}
+		let categoryFilteredRows = rows;
 
 		if (catFilter === UNCATEGORIZED_VALUE) {
-			return rows.filter((row) => !row?.category?.category);
+			categoryFilteredRows = rows.filter((row) => !row?.category?.category);
+		} else if (catFilter !== "all") {
+			categoryFilteredRows = rows.filter((row) => row?.category?.category === catFilter);
 		}
 
-		return rows.filter((row) => row?.category?.category === catFilter);
+		return categoryFilteredRows;
 	}, [overviewResponse?.transactions, catFilter, UNCATEGORIZED_VALUE]);
+
+	const summary = React.useMemo(() => {
+		const income = filteredTransactions
+			.filter((transaction) => transaction.isIncome)
+			.reduce((acc, transaction) => acc + getAmount(transaction.transactionAmount), 0);
+		const expenses = filteredTransactions
+			.filter((transaction) => !transaction.isIncome)
+			.reduce((acc, transaction) => acc + getAmount(transaction.transactionAmount), 0);
+
+		return {
+			income,
+			expenses,
+			remaining: income - expenses,
+		};
+	}, [filteredTransactions, getAmount]);
 
 	const transactionColumns: GridColDef<transactions>[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
@@ -176,12 +204,28 @@ export default function Page(): React.JSX.Element {
 				</Stack>
 			</Grid>
 
-			{["income", "expenses", "remaining"].map((type) => (
-				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={type}>
+			{[
+				{
+					key: "income",
+					title: "INCOME",
+					isVisible: showIncomeSummary,
+					onToggle: () => setShowIncomeSummary((prev) => !prev),
+				},
+				{
+					key: "expenses",
+					title: "EXPENSES",
+					isVisible: showExpenseSummary,
+					onToggle: () => setShowExpenseSummary((prev) => !prev),
+				},
+				{ key: "remaining", title: "REMAINING", isVisible: true },
+			].map((card) => (
+				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={card.key}>
 					<Budget
-						title={type.toUpperCase()}
+						title={card.title}
 						sx={{ height: "100%" }}
-						value={(overviewResponse?.[type as keyof OverviewResponse] ?? 0).toLocaleString()}
+						value={summary[card.key as keyof typeof summary].toLocaleString()}
+						isValueVisible={card.isVisible}
+						onVisibilityToggle={card.onToggle}
 					/>
 				</Grid>
 			))}
