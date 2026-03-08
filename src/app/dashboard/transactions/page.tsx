@@ -33,8 +33,8 @@ export default function Page(): React.JSX.Element {
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
 	const [categories, setCategories] = React.useState<string[]>([]);
 	const [catFilter, setCatFilter] = React.useState<string>("all");
-	const [showIncome, setShowIncome] = React.useState(true);
-	const [showExpenses, setShowExpenses] = React.useState(true);
+	const [showIncome, setShowIncome] = React.useState(false);
+	const [showExpenses, setShowExpenses] = React.useState(false);
 	const [showIncomeSummary, setShowIncomeSummary] = React.useState(true);
 	const [showExpenseSummary, setShowExpenseSummary] = React.useState(true);
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
