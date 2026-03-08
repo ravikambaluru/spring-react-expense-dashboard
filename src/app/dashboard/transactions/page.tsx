@@ -35,6 +35,8 @@ export default function Page(): React.JSX.Element {
 	const [catFilter, setCatFilter] = React.useState<string>("all");
 	const [showIncome, setShowIncome] = React.useState(true);
 	const [showExpenses, setShowExpenses] = React.useState(true);
+	const [showIncomeSummary, setShowIncomeSummary] = React.useState(true);
+	const [showExpenseSummary, setShowExpenseSummary] = React.useState(true);
 	const [triggerReload, setTriggerReload] = React.useState<boolean>(false);
 	const [loading, setLoading] = React.useState(false);
 	const UNCATEGORIZED_VALUE = "__uncategorized__";
@@ -197,12 +199,28 @@ export default function Page(): React.JSX.Element {
 				</Stack>
 			</Grid>
 
-			{["income", "expenses", "remaining"].map((type) => (
-				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={type}>
+			{[
+				{
+					key: "income",
+					title: "INCOME",
+					isVisible: showIncomeSummary,
+					onToggle: () => setShowIncomeSummary((prev) => !prev),
+				},
+				{
+					key: "expenses",
+					title: "EXPENSES",
+					isVisible: showExpenseSummary,
+					onToggle: () => setShowExpenseSummary((prev) => !prev),
+				},
+				{ key: "remaining", title: "REMAINING", isVisible: true },
+			].map((card) => (
+				<Grid size={{ xs: 12, sm: 12, lg: 4 }} key={card.key}>
 					<Budget
-						title={type.toUpperCase()}
+						title={card.title}
 						sx={{ height: "100%" }}
-						value={summary[type as keyof typeof summary].toLocaleString()}
+						value={summary[card.key as keyof typeof summary].toLocaleString()}
+						isValueVisible={card.isVisible}
+						onVisibilityToggle={card.onToggle}
 					/>
 				</Grid>
 			))}
