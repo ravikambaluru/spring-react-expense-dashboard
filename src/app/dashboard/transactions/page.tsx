@@ -4,17 +4,16 @@ import * as React from "react";
 import { Budget } from "@/features/dashboard/overview/budget";
 import {
 	Box,
+	Button,
 	Checkbox,
 	Chip,
 	FormControl,
-	FormControlLabel,
 	Grid,
 	InputLabel,
 	MenuItem,
 	Paper,
 	Select,
 	Stack,
-	Switch,
 	Typography,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
@@ -31,6 +30,7 @@ export default function Page(): React.JSX.Element {
 	const [overviewResponse, setOverviewResponse] = React.useState<OverviewResponse>();
 	const [startDate, setStartDate] = React.useState<Dayjs | null>(dayjs().startOf("month"));
 	const [endDate, setEndDate] = React.useState<Dayjs | null>(dayjs().endOf("day"));
+	const [selectedMonth, setSelectedMonth] = React.useState<Dayjs | null>(dayjs());
 	const [categories, setCategories] = React.useState<string[]>([]);
 	const [catFilter, setCatFilter] = React.useState<string>("all");
 	const [showIncomeSummary, setShowIncomeSummary] = React.useState(false);
@@ -120,6 +120,25 @@ export default function Page(): React.JSX.Element {
 			remaining: income - expenses,
 		};
 	}, [filteredTransactions, getAmount]);
+
+	const uncategorizedCount = React.useMemo(() => {
+		const rows = overviewResponse?.transactions || [];
+		return rows.filter((row) => !row?.category?.category).length;
+	}, [overviewResponse?.transactions]);
+
+	const handleMonthChange = React.useCallback((month: Dayjs | null) => {
+		setSelectedMonth(month);
+		if (!month) {
+			return;
+		}
+
+		setStartDate(month.startOf("month"));
+		setEndDate(month.endOf("month"));
+	}, []);
+
+	const handleTakeAction = React.useCallback(() => {
+		setCatFilter(UNCATEGORIZED_VALUE);
+	}, [UNCATEGORIZED_VALUE]);
 
 	const transactionColumns: GridColDef<transactions>[] = [
 		{ field: "id", headerName: "ID", flex: 0.1, minWidth: 40 },
@@ -232,6 +251,16 @@ export default function Page(): React.JSX.Element {
 
 			<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
 				<DatePicker
+					label="Month"
+					value={selectedMonth}
+					onChange={handleMonthChange}
+					views={["year", "month"]}
+					slotProps={{ textField: { fullWidth: true } }}
+				/>
+			</Grid>
+
+			<Grid size={{ xs: 12, sm: 12, lg: 4 }}>
+				<DatePicker
 					label="Start Date"
 					value={startDate}
 					onChange={setStartDate}
@@ -260,6 +289,36 @@ export default function Page(): React.JSX.Element {
 						))}
 					</Select>
 				</FormControl>
+			</Grid>
+
+			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
+				<Paper
+					elevation={0}
+					sx={{
+						p: 2,
+						borderRadius: 2,
+						border: "1px solid",
+						borderColor: "warning.light",
+						bgcolor: "warning.50",
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+						gap: 2,
+						flexWrap: "wrap",
+					}}
+				>
+					<Stack spacing={0.5}>
+						<Typography variant="subtitle1" fontWeight={700}>
+							{uncategorizedCount} transaction{uncategorizedCount === 1 ? "" : "s"} uncategorized
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Review these transactions and assign categories to keep reports accurate.
+						</Typography>
+					</Stack>
+					<Button variant="contained" color="warning" onClick={handleTakeAction}>
+						Take actions
+					</Button>
+				</Paper>
 			</Grid>
 
 			<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
