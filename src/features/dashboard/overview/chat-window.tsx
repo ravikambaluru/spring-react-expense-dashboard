@@ -6,6 +6,7 @@ import { RobotIcon } from "@phosphor-icons/react/dist/ssr/Robot";
 import { SparkleIcon } from "@phosphor-icons/react/dist/ssr/Sparkle";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/ssr/TrendUp";
 import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
+import ReactMarkdown from "react-markdown";
 import {
 	Alert,
 	Avatar,
@@ -178,7 +179,7 @@ export function ChatWindow(): React.JSX.Element {
 									}}
 								>
 									<Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.55 }}>
-										{message.text}
+										<ReactMarkdown>{message.text}</ReactMarkdown>
 									</Typography>
 								</Box>
 								{isUser ? (
