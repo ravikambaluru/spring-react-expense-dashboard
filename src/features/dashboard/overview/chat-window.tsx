@@ -39,7 +39,7 @@ export function ChatWindow(): React.JSX.Element {
 	const [messages, setMessages] = React.useState<ChatItem[]>([
 		{
 			id: Math.random() * 100,
-			messageRole: "assistant",
+			messageRole: "ASSISTANT",
 			message: "Hi! I can help explain spending trends and suggest practical next steps for your budget.",
 		},
 	]);
@@ -59,13 +59,13 @@ export function ChatWindow(): React.JSX.Element {
 		const trimmedPrompt = prompt.trim();
 		setPrompt("");
 		setError(null);
-		setMessages((current) => [...current, { id: Math.random() * 100, messageRole: "user", message: trimmedPrompt }]);
+		setMessages((current) => [...current, { id: Math.random() * 100, messageRole: "USER", message: trimmedPrompt }]);
 		setIsSending(true);
 
 		try {
 			const assistantReply: ChatApiResponse[] = await sendHomeChatMessage(trimmedPrompt);
 			let chatItems: ChatItem[] = assistantReply.map((reply: ChatApiResponse): ChatItem => {
-				return { id: Math.random() * 100, messageRole: "assistant", message: reply.messageRole };
+				return { id: Math.random() * 100, messageRole: reply.messageRole, message: reply.message };
 			});
 
 			setMessages(chatItems);
@@ -162,8 +162,9 @@ export function ChatWindow(): React.JSX.Element {
 						overflowY: "auto",
 					}}
 				>
+          {console.log(messages)}
 					{messages.map((message) => {
-						const isUser = message.messageRole === "user";
+						const isUser = message.messageRole === "USER";
 						return (
 							<Stack
 								key={message.id}

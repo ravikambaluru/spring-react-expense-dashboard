@@ -1,6 +1,6 @@
 import axiosInstance from "./axios";
 import {AxiosResponse} from "axios";
-export type Sender = "assistant" | "user";
+export type Sender = "ASSISTANT" | "USER";
 export interface ChatApiResponse {
   messageRole?: Sender;
 	message?: string;
