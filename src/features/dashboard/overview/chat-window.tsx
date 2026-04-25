@@ -22,29 +22,25 @@ import {
 	Typography,
 } from "@mui/material";
 
-import { sendHomeChatMessage } from "@/lib/api/chat";
-
-type Sender = "assistant" | "user";
-
-interface ChatMessage {
-	id: string;
-	sender: Sender;
-	text: string;
-}
-
+import {ChatApiResponse, sendHomeChatMessage} from "@/lib/api/chat";
+import {useEffect} from "react";
+import {id} from "ci-info";
 const quickPrompts = [
 	"Summarize this month's spending pattern",
 	"Where can I reduce unnecessary expenses?",
 	"Show me suspicious or unusual transactions",
 	"How can I improve monthly savings by 10%?",
 ];
-
+interface ChatItem extends ChatApiResponse
+{
+  id: number;
+}
 export function ChatWindow(): React.JSX.Element {
-	const [messages, setMessages] = React.useState<ChatMessage[]>([
+	const [messages, setMessages] = React.useState<ChatItem[]>([
 		{
-			id: "welcome-message",
-			sender: "assistant",
-			text: "Hi! I can help explain spending trends and suggest practical next steps for your budget.",
+      id: Math.random()*100,
+			messageRole: "assistant",
+			message: "Hi! I can help explain spending trends and suggest practical next steps for your budget.",
 		},
 	]);
 	const [prompt, setPrompt] = React.useState("");
@@ -52,33 +48,28 @@ export function ChatWindow(): React.JSX.Element {
 	const [error, setError] = React.useState<string | null>(null);
 	const scrollAnchorRef = React.useRef<HTMLDivElement>(null);
 
-	React.useEffect(() => {
+  useEffect(() => {
     onSendMessage();
+  }, []);
+	React.useEffect(() => {
 		scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
 
 	}, [messages, isSending]);
 
 	const onSendMessage = React.useCallback(async () => {
 		const trimmedPrompt = prompt.trim();
-		if (!trimmedPrompt || isSending) {
-			return;
-		}
-
 		setPrompt("");
 		setError(null);
-		setMessages((current) => [...current, { id: `user-${Date.now()}`, sender: "user", text: trimmedPrompt }]);
+		setMessages((current) => [...current, { id: Math.random()*100, messageRole: "user", message: trimmedPrompt }]);
 		setIsSending(true);
 
 		try {
-			const assistantReply = await sendHomeChatMessage(trimmedPrompt);
-			setMessages((current) => [
-				...current,
-				{
-					id: `assistant-${Date.now()}`,
-					sender: "assistant",
-					text: assistantReply || "I received your message but could not parse a response. Please try again.",
-				},
-			]);
+			const assistantReply: ChatApiResponse[] = await sendHomeChatMessage(trimmedPrompt);
+      let chatItems:ChatItem[] = assistantReply.map((reply: ChatApiResponse):ChatItem => {
+        return {id: Math.random()*100, messageRole: "assistant", message: reply.messageRole};
+      });
+
+			setMessages(chatItems);
 		} catch (chatError) {
 			console.error(chatError);
 			setError("Unable to reach the assistant right now. Please try again in a moment.");
@@ -159,7 +150,7 @@ export function ChatWindow(): React.JSX.Element {
 
 				<Box sx={{ p: { xs: 2, md: 3 }, display: "flex", flexDirection: "column", gap: 1.5, minHeight: 460, maxHeight: 540, overflowY: "auto" }}>
 					{messages.map((message) => {
-						const isUser = message.sender === "user";
+						const isUser = message.messageRole === "user";
 						return (
 							<Stack key={message.id} direction="row" spacing={1} justifyContent={isUser ? "flex-end" : "flex-start"} alignItems="flex-end">
 								{isUser ? null : (
@@ -181,7 +172,7 @@ export function ChatWindow(): React.JSX.Element {
 									}}
 								>
 									<Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.55 }}>
-										<ReactMarkdown>{message.text}</ReactMarkdown>
+										<ReactMarkdown>{message.message}</ReactMarkdown>
 									</Typography>
 								</Box>
 								{isUser ? (

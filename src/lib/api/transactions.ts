@@ -29,7 +29,7 @@ export const updateTransaction = async (payload: transactions): Promise<boolean>
 
 const BASE_URL = "/api/transactions";
 
-export const createTransaction = async (request: TransactionRequestDTO): Promise<TransactionResponseDTO> => {
+export const createTransaction: (request: TransactionRequestDTO) => Promise<TransactionResponseDTO> = async (request: TransactionRequestDTO): Promise<TransactionResponseDTO> => {
 	const response = await axiosInstance.post<TransactionResponseDTO>(BASE_URL, request);
 	return response.data;
 };
