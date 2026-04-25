@@ -5,6 +5,7 @@ export const navItems = [
 	{ key: "monthlyExpenses", title: "Home", href: paths.dashboard.overview, icon: "home" },
 	{ key: "monthlyTransactions", title: "Monthly Transactions", href: paths.dashboard.transactions, icon: "currency" },
 	{ key: "share", title: "Share Calculators", href: paths.dashboard.shareCalculator, icon: "users" },
+	{ key: "aiChat", title: "AI Chat", href: paths.dashboard.chat, icon: "chat" },
 	{
 		key: "categories",
 		title: "Category Studio",
