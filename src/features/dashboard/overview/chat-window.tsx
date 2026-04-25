@@ -1,12 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
-import { RobotIcon } from "@phosphor-icons/react/dist/ssr/Robot";
-import { SparkleIcon } from "@phosphor-icons/react/dist/ssr/Sparkle";
-import { TrendUpIcon } from "@phosphor-icons/react/dist/ssr/TrendUp";
-import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
-import ReactMarkdown from "react-markdown";
+import { useEffect } from "react";
 import {
 	Alert,
 	Avatar,
@@ -21,24 +16,29 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
+import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
+import { RobotIcon } from "@phosphor-icons/react/dist/ssr/Robot";
+import { SparkleIcon } from "@phosphor-icons/react/dist/ssr/Sparkle";
+import { TrendUpIcon } from "@phosphor-icons/react/dist/ssr/TrendUp";
+import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
+import { id } from "ci-info";
+import ReactMarkdown from "react-markdown";
 
-import {ChatApiResponse, sendHomeChatMessage} from "@/lib/api/chat";
-import {useEffect} from "react";
-import {id} from "ci-info";
+import { ChatApiResponse, sendHomeChatMessage } from "@/lib/api/chat";
+
 const quickPrompts = [
 	"Summarize this month's spending pattern",
 	"Where can I reduce unnecessary expenses?",
 	"Show me suspicious or unusual transactions",
 	"How can I improve monthly savings by 10%?",
 ];
-interface ChatItem extends ChatApiResponse
-{
-  id: number;
+interface ChatItem extends ChatApiResponse {
+	id: number;
 }
 export function ChatWindow(): React.JSX.Element {
 	const [messages, setMessages] = React.useState<ChatItem[]>([
 		{
-      id: Math.random()*100,
+			id: Math.random() * 100,
 			messageRole: "assistant",
 			message: "Hi! I can help explain spending trends and suggest practical next steps for your budget.",
 		},
@@ -48,26 +48,25 @@ export function ChatWindow(): React.JSX.Element {
 	const [error, setError] = React.useState<string | null>(null);
 	const scrollAnchorRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    onSendMessage();
-  }, []);
+	useEffect(() => {
+		onSendMessage();
+	}, []);
 	React.useEffect(() => {
 		scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
-
 	}, [messages, isSending]);
 
 	const onSendMessage = React.useCallback(async () => {
 		const trimmedPrompt = prompt.trim();
 		setPrompt("");
 		setError(null);
-		setMessages((current) => [...current, { id: Math.random()*100, messageRole: "user", message: trimmedPrompt }]);
+		setMessages((current) => [...current, { id: Math.random() * 100, messageRole: "user", message: trimmedPrompt }]);
 		setIsSending(true);
 
 		try {
 			const assistantReply: ChatApiResponse[] = await sendHomeChatMessage(trimmedPrompt);
-      let chatItems:ChatItem[] = assistantReply.map((reply: ChatApiResponse):ChatItem => {
-        return {id: Math.random()*100, messageRole: "assistant", message: reply.messageRole};
-      });
+			let chatItems: ChatItem[] = assistantReply.map((reply: ChatApiResponse): ChatItem => {
+				return { id: Math.random() * 100, messageRole: "assistant", message: reply.messageRole };
+			});
 
 			setMessages(chatItems);
 		} catch (chatError) {
@@ -127,7 +126,11 @@ export function ChatWindow(): React.JSX.Element {
 							sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }}
 						/>
 						<Chip label="Savings Tips" size="small" sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }} />
-						<Chip label="Category Insights" size="small" sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }} />
+						<Chip
+							label="Category Insights"
+							size="small"
+							sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }}
+						/>
 					</Stack>
 				</Box>
 
@@ -148,11 +151,27 @@ export function ChatWindow(): React.JSX.Element {
 					</Stack>
 				</Box>
 
-				<Box sx={{ p: { xs: 2, md: 3 }, display: "flex", flexDirection: "column", gap: 1.5, minHeight: 460, maxHeight: 540, overflowY: "auto" }}>
+				<Box
+					sx={{
+						p: { xs: 2, md: 3 },
+						display: "flex",
+						flexDirection: "column",
+						gap: 1.5,
+						minHeight: 460,
+						maxHeight: 540,
+						overflowY: "auto",
+					}}
+				>
 					{messages.map((message) => {
 						const isUser = message.messageRole === "user";
 						return (
-							<Stack key={message.id} direction="row" spacing={1} justifyContent={isUser ? "flex-end" : "flex-start"} alignItems="flex-end">
+							<Stack
+								key={message.id}
+								direction="row"
+								spacing={1}
+								justifyContent={isUser ? "flex-end" : "flex-start"}
+								alignItems="flex-end"
+							>
 								{isUser ? null : (
 									<Avatar sx={{ width: 30, height: 30, bgcolor: "secondary.main" }}>
 										<RobotIcon size={18} weight="fill" />
@@ -171,9 +190,30 @@ export function ChatWindow(): React.JSX.Element {
 										boxShadow: "0 2px 10px rgba(15, 23, 42, 0.06)",
 									}}
 								>
-									<Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.55 }}>
+									<Box
+										sx={{
+											fontSize: "0.875rem",
+											lineHeight: 1.55,
+											"& p": { my: 0 },
+											"& p + p": { mt: 1 },
+											"& ul, & ol": { my: 0, pl: 2.5 },
+											"& li + li": { mt: 0.5 },
+											"& pre": {
+												overflowX: "auto",
+												borderRadius: 1,
+												bgcolor: "action.hover",
+												px: 1,
+												py: 0.75,
+												my: 0.75,
+											},
+											"& code": {
+												fontFamily: "var(--font-roboto-mono)",
+												fontSize: "0.8125rem",
+											},
+										}}
+									>
 										<ReactMarkdown>{message.message}</ReactMarkdown>
-									</Typography>
+									</Box>
 								</Box>
 								{isUser ? (
 									<Avatar sx={{ width: 30, height: 30, bgcolor: "primary.dark" }}>
