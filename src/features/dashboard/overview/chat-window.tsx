@@ -53,7 +53,9 @@ export function ChatWindow(): React.JSX.Element {
 	const scrollAnchorRef = React.useRef<HTMLDivElement>(null);
 
 	React.useEffect(() => {
+    onSendMessage();
 		scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
+
 	}, [messages, isSending]);
 
 	const onSendMessage = React.useCallback(async () => {
