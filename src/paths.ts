@@ -9,6 +9,7 @@ export const paths = {
 		categorySplitSettings: "/dashboard/integrations",
 		autoCategorization: "/dashboard/auto-categorization",
 		settings: "/dashboard/settings",
+		chat: "/dashboard/chat",
 	},
 	errors: { notFound: "/errors/not-found" },
 } as const;

@@ -5,7 +5,6 @@ import { Budget } from "@/features/dashboard/overview/budget";
 import { DailyExpenseChart } from "@/features/dashboard/overview/daily-expense-breakdown";
 import { IncomeExpenseChart } from "@/features/dashboard/overview/income-expense-chart";
 import { SharedPersonalChart } from "@/features/dashboard/overview/shared-personal-breakdown";
-import { ChatWindow } from "@/features/dashboard/overview/chat-window";
 import { Card, Checkbox, FormControlLabel, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -123,9 +122,6 @@ export default function Page(): React.JSX.Element {
 							data={data?.sharedVsPersonal ?? { shared: 0, personal: 0 }}
 						/>
 					</Card>
-				</Grid>
-				<Grid size={{ xs: 12, sm: 12, lg: 12 }}>
-					<ChatWindow />
 				</Grid>
 			</Grid>
 			<LoadingScreen open={loading} />

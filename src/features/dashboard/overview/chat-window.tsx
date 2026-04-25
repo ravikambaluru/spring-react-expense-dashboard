@@ -4,6 +4,7 @@ import * as React from "react";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/ssr/PaperPlaneTilt";
 import { RobotIcon } from "@phosphor-icons/react/dist/ssr/Robot";
 import { SparkleIcon } from "@phosphor-icons/react/dist/ssr/Sparkle";
+import { TrendUpIcon } from "@phosphor-icons/react/dist/ssr/TrendUp";
 import { UserIcon } from "@phosphor-icons/react/dist/ssr/User";
 import {
 	Alert,
@@ -11,6 +12,7 @@ import {
 	Box,
 	Card,
 	CardContent,
+	Chip,
 	CircularProgress,
 	Divider,
 	IconButton,
@@ -29,12 +31,19 @@ interface ChatMessage {
 	text: string;
 }
 
+const quickPrompts = [
+	"Summarize this month's spending pattern",
+	"Where can I reduce unnecessary expenses?",
+	"Show me suspicious or unusual transactions",
+	"How can I improve monthly savings by 10%?",
+];
+
 export function ChatWindow(): React.JSX.Element {
 	const [messages, setMessages] = React.useState<ChatMessage[]>([
 		{
 			id: "welcome-message",
 			sender: "assistant",
-			text: "Hi! I can help explain spending trends and suggest next actions. Ask me anything about your finances.",
+			text: "Hi! I can help explain spending trends and suggest practical next steps for your budget.",
 		},
 	]);
 	const [prompt, setPrompt] = React.useState("");
@@ -54,10 +63,7 @@ export function ChatWindow(): React.JSX.Element {
 
 		setPrompt("");
 		setError(null);
-		setMessages((current) => [
-			...current,
-			{ id: `user-${Date.now()}`, sender: "user", text: trimmedPrompt },
-		]);
+		setMessages((current) => [...current, { id: `user-${Date.now()}`, sender: "user", text: trimmedPrompt }]);
 		setIsSending(true);
 
 		try {
@@ -67,9 +73,7 @@ export function ChatWindow(): React.JSX.Element {
 				{
 					id: `assistant-${Date.now()}`,
 					sender: "assistant",
-					text:
-						assistantReply ||
-						"I received your message but did not get a response body. Please try again.",
+					text: assistantReply || "I received your message but could not parse a response. Please try again.",
 				},
 			]);
 		} catch (chatError) {
@@ -80,31 +84,77 @@ export function ChatWindow(): React.JSX.Element {
 		}
 	}, [isSending, prompt]);
 
+	const onQuickPrompt = React.useCallback(
+		(value: string) => {
+			setPrompt(value);
+		},
+		[setPrompt]
+	);
+
 	return (
 		<Card
 			sx={{
-				height: "100%",
 				borderRadius: 4,
-				background:
-					"linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(246,248,255,1) 100%)",
-				boxShadow: "0px 12px 32px rgba(35, 45, 65, 0.08)",
+				overflow: "hidden",
+				boxShadow: "0px 20px 45px rgba(35, 45, 65, 0.14)",
+				border: "1px solid",
+				borderColor: "divider",
 			}}
 		>
-			<CardContent sx={{ p: 0, height: "100%", display: "flex", flexDirection: "column" }}>
-				<Stack direction="row" alignItems="center" spacing={1.5} sx={{ p: 2.5, pb: 2 }}>
-					<Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>
-						<SparkleIcon size={18} weight="fill" />
-					</Avatar>
-					<Box>
-						<Typography variant="h6">AI Expense Assistant</Typography>
-						<Typography color="text.secondary" variant="body2">
-							Ask questions about monthly spending, savings, and categories.
-						</Typography>
-					</Box>
-				</Stack>
-				<Divider />
+			<CardContent sx={{ p: 0 }}>
+				<Box
+					sx={{
+						px: { xs: 2, md: 3 },
+						py: 2.5,
+						background:
+							"linear-gradient(135deg, rgba(79,70,229,0.95) 0%, rgba(37,99,235,0.9) 45%, rgba(6,182,212,0.88) 100%)",
+						color: "common.white",
+					}}
+				>
+					<Stack direction="row" spacing={1.5} alignItems="center">
+						<Avatar sx={{ width: 38, height: 38, bgcolor: "rgba(255,255,255,0.2)" }}>
+							<SparkleIcon size={18} weight="fill" />
+						</Avatar>
+						<Box>
+							<Typography variant="h6" sx={{ fontWeight: 700 }}>
+								AI Expense Co-Pilot
+							</Typography>
+							<Typography variant="body2" sx={{ opacity: 0.95 }}>
+								Fast answers, clear insights, and practical actions.
+							</Typography>
+						</Box>
+					</Stack>
 
-				<Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5, maxHeight: 400, overflowY: "auto" }}>
+					<Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap", rowGap: 1 }}>
+						<Chip
+							icon={<TrendUpIcon size={14} />}
+							label="Spending Trends"
+							size="small"
+							sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }}
+						/>
+						<Chip label="Savings Tips" size="small" sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }} />
+						<Chip label="Category Insights" size="small" sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "common.white" }} />
+					</Stack>
+				</Box>
+
+				<Box sx={{ px: { xs: 2, md: 3 }, py: 2, borderBottom: "1px solid", borderColor: "divider" }}>
+					<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+						Try one of these:
+					</Typography>
+					<Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+						{quickPrompts.map((quickPrompt) => (
+							<Chip
+								key={quickPrompt}
+								label={quickPrompt}
+								variant="outlined"
+								onClick={() => onQuickPrompt(quickPrompt)}
+								sx={{ borderRadius: 2 }}
+							/>
+						))}
+					</Stack>
+				</Box>
+
+				<Box sx={{ p: { xs: 2, md: 3 }, display: "flex", flexDirection: "column", gap: 1.5, minHeight: 460, maxHeight: 540, overflowY: "auto" }}>
 					{messages.map((message) => {
 						const isUser = message.sender === "user";
 						return (
@@ -116,9 +166,9 @@ export function ChatWindow(): React.JSX.Element {
 								)}
 								<Box
 									sx={{
-										maxWidth: { xs: "85%", md: "75%" },
-										px: 1.5,
-										py: 1.2,
+										maxWidth: { xs: "90%", md: "75%" },
+										px: 1.8,
+										py: 1.3,
 										borderRadius: 2,
 										bgcolor: isUser ? "primary.main" : "background.paper",
 										color: isUser ? "primary.contrastText" : "text.primary",
@@ -127,7 +177,7 @@ export function ChatWindow(): React.JSX.Element {
 										boxShadow: "0 2px 10px rgba(15, 23, 42, 0.06)",
 									}}
 								>
-									<Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+									<Typography variant="body2" sx={{ whiteSpace: "pre-wrap", lineHeight: 1.55 }}>
 										{message.text}
 									</Typography>
 								</Box>
@@ -151,13 +201,13 @@ export function ChatWindow(): React.JSX.Element {
 				</Box>
 
 				{error ? (
-					<Box sx={{ px: 2.5, pb: 1 }}>
+					<Box sx={{ px: { xs: 2, md: 3 }, pb: 1.5 }}>
 						<Alert severity="error">{error}</Alert>
 					</Box>
 				) : null}
 
 				<Divider />
-				<Stack direction="row" spacing={1.5} sx={{ p: 2 }}>
+				<Stack direction="row" spacing={1.5} sx={{ p: { xs: 1.75, md: 2.25 } }}>
 					<TextField
 						fullWidth
 						value={prompt}
@@ -168,7 +218,7 @@ export function ChatWindow(): React.JSX.Element {
 								void onSendMessage();
 							}
 						}}
-						placeholder="Type your question..."
+						placeholder="Ask your question..."
 						disabled={isSending}
 						size="small"
 					/>
